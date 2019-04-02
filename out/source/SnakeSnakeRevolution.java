@@ -3,6 +3,8 @@ import processing.data.*;
 import processing.event.*; 
 import processing.opengl.*; 
 
+import ddf.minim.*; 
+
 import java.util.HashMap; 
 import java.util.ArrayList; 
 import java.io.File; 
@@ -12,7 +14,9 @@ import java.io.InputStream;
 import java.io.OutputStream; 
 import java.io.IOException; 
 
-public class SnakeGame extends PApplet {
+public class SnakeSnakeRevolution extends PApplet {
+
+
 
 //CONSTANTS
 final int TILESIZE = 50;
@@ -22,9 +26,12 @@ Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
 
 Timer GameTime = new Timer(100);
+Minim minim;
 
 public void setup(){
     
+    
+    minim = new Minim(this);
 
     snek.AddNode(4,5);
     snek.AddNode(4,5);
@@ -234,10 +241,14 @@ class Timer {
         //Return nothing
         return false;
     }
+
+    public void CalcBPM(){
+        
+    }
 }
   public void settings() {  size(800,800); }
   static public void main(String[] passedArgs) {
-    String[] appletArgs = new String[] { "SnakeGame" };
+    String[] appletArgs = new String[] { "SnakeSnakeRevolution" };
     if (passedArgs != null) {
       PApplet.main(concat(appletArgs, passedArgs));
     } else {
