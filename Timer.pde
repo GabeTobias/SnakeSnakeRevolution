@@ -16,9 +16,9 @@ class Timer {
         //Check if too much time has passed
         if(currentInterval >= _interval-_latency){
             if(currentInterval >= _interval) 
-                _previousTick = millis();                           //Update the previous interval
+                _previousTick = millis();                        //Update the previous interval
             
-            return true;                                        //Return the frame to be true
+            return true;                                         //Return the frame to be true
         }
 
         //Return nothing
@@ -31,5 +31,9 @@ class Timer {
 
     public void Reset(){
         _previousTick = millis();
+    }
+
+    public void setInterval(float inter){
+        _interval = inter;
     }
 }

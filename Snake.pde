@@ -13,6 +13,12 @@ class Snake extends Node{
         //Set default position of head
         _posX = x0;
         _posY = y0;
+
+        //Add default body
+        AddNode(x0,y0);
+        AddNode(x0,y0);
+        AddNode(x0,y0);
+        AddNode(x0,y0);
     }
 
     void Show(){

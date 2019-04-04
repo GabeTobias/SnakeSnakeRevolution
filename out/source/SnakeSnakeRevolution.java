@@ -26,46 +26,41 @@ final int TILESIZE = 20;
 //GLOBALS
 Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
-
 Timer GameTime = new Timer(100);
 
+//GLOBALS UNINITS
 Minim minim;
 SoundController sound;
 
-
-//DEBUGGERY\\
-Object FFD;
+//DEBUGGERY
+Object CONTEXT;
 int bkg = 100;
 
 public void setup(){
     
-
     frameRate(120);
 
-    snek.AddNode(4,5);
-    snek.AddNode(4,5);
-    snek.AddNode(4,5);
-    snek.AddNode(4,5);
+    //Set File loading Context
+    CONTEXT = this;
 
-    FFD = this;
-
+    //Load Sound Controller
     sound = new SoundController();
     sound.LoadMusic();
 }
 
 public void draw(){
-    println(frameRate);
- 
     //Update the game on timer
     if(GameTime.Triggered()) HandleGame();
 }
 
 public void HandleGame(){
-    //Clear Background
-    background(bkg);
+    bkg = 200;
 
     //Update Sound and Beat Detection
     sound.Update();
+
+    //Clear Background
+    background(bkg);
 
     //Manipulate Snake Object
     snek.Show();
@@ -73,8 +68,8 @@ public void HandleGame(){
 
     //Manipulate Food
     if(goal.isEaten(snek._posX,snek._posY)) {
-        goal.Eat();
         snek.AddNode(snek._posX,snek._posY);
+        goal.Eat();
     }
     
     goal.Show();
@@ -87,6 +82,10 @@ public void keyPressed(){
     if(key == 'a') snek.SetVelocity(-1, 0);
     if(key == 's') snek.SetVelocity( 0, 1);
     if(key == 'd') snek.SetVelocity( 1, 0);
+}
+
+public void onBeatEvent(){
+    bkg = 51;
 }
 
 public class Food {
@@ -165,6 +164,12 @@ class Snake extends Node{
         //Set default position of head
         _posX = x0;
         _posY = y0;
+
+        //Add default body
+        AddNode(x0,y0);
+        AddNode(x0,y0);
+        AddNode(x0,y0);
+        AddNode(x0,y0);
     }
 
     public void Show(){
@@ -240,61 +245,67 @@ class Snake extends Node{
 
 
 class SoundController {
-
+    //Audio file listing
     String[] Music;
     String[] Sounds;
     
+    //Active Audio Players
     AudioPlayer _player;
     AudioInput _input;
     
+    //Alternate beat detection system
     BeatDetect detector;
 
+    //Audio beat timer
     Timer _beat = new Timer(fromBPM(45.75f/2.0f));
-    int _bpm;
+
+    //Music Timing Managment
+    float _bpm = 96.0f;
+    float _sub = 2.0f;
 
     boolean _MusicSynced;
 
     public SoundController(){
         //Initialize Minim library
-        minim = new Minim(FFD);
+        minim = new Minim(CONTEXT);
 
         //Initialize Beat Detector
         detector = new BeatDetect();
 
+        //Load the current audio and play
         _player = minim.loadFile("test_song_1.mp3");
         _player.play();
     }
 
+    //Future Audio Managment
     public void LoadSounds(){}
     public void LoadMusic(){}
 
 
     public void Update(){
-        if(onBeat()){
-            bkg = 51;
-        } else {
-            bkg = 200;
-        }
+        boolean checkBeat = onBeat();              //Check if frame is on beat
+        if(checkBeat) onBeatEvent();               //Change background to beat
     }
 
 
     public void SetBPM(int bpm){
-        _beat = new Timer(fromBPM(bpm));
-        _beat.setLatency(100);
+        _beat.setInterval(fromBPM(bpm));            //Set the timer Interval to bpm
+        _beat.Reset();                              //Reset the timer
+        _beat.setLatency(100);                      //Adjust the latency
         _bpm = bpm;
     }
 
     public int fromBPM(float bpm){
-        float sec = bpm / 60.0f;
-        float millis = sec * 1000;
+        float sec = bpm / 60.0f;                     //Convert from bpm to seconds
+        float millis = sec * 1000;                  //Convert from seconds to milliseconds
 
         return PApplet.parseInt(millis);
     }
 
     //TODO: Detect audio desync
     public void Calibrate(){
-        if(detectRythm() && !onBeat()){
-            _beat.Reset();
+        if(detectRythm() && !onBeat()) {            //Detect Audio Desync
+            _beat.Reset();                          //Reset the Audio
         }
     }
 
@@ -303,25 +314,28 @@ class SoundController {
     ///////////////////////////////////////////////////////////////
 
     public boolean onBeat(){
-        int offset = _player.position()%fromBPM(96.0f/4.0f);
-        return (offset <= 150);
+        int beatTiming = fromBPM(_bpm/_sub);        //Current time between beats
+        int time = _player.position();              //Time since audio started
+        int offset = time % beatTiming;             //Time till the next beat
+        
+        return (offset <= 250);
     }
 
     ///////////////////////////Depricated///////////////////////////
 
     //Detect Down Beat
     public boolean detectTiming() {
-        if(!_MusicSynced && _beat.Triggered()){
-            _player.cue(0);
-            _MusicSynced = true;
+        if(!_MusicSynced && _beat.Triggered()){     //Check for the first 
+            _player.cue(0);                         //Restart the audio
+            _MusicSynced = true;                    //tag the audio as started
         }
 
-        return _beat.Triggered();
+        return _beat.Triggered();                   //Check the audio timer
     }
 
     public boolean detectRythm(){
-        detector.detect(_player.mix);
-        return detector.isOnset();
+        detector.detect(_player.mix);               //Process the current position in audio
+        return detector.isOnset();                  //Check the audio for intensity
     }
 }
 
@@ -342,9 +356,9 @@ class Timer {
         //Check if too much time has passed
         if(currentInterval >= _interval-_latency){
             if(currentInterval >= _interval) 
-                _previousTick = millis();                           //Update the previous interval
+                _previousTick = millis();                        //Update the previous interval
             
-            return true;                                        //Return the frame to be true
+            return true;                                         //Return the frame to be true
         }
 
         //Return nothing
@@ -357,6 +371,10 @@ class Timer {
 
     public void Reset(){
         _previousTick = millis();
+    }
+
+    public void setInterval(float inter){
+        _interval = inter;
     }
 }
   public void settings() {  size(800,800); }

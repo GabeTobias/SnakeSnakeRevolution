@@ -7,46 +7,43 @@ final int TILESIZE = 20;
 //GLOBALS
 Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
-
 Timer GameTime = new Timer(100);
 
+//GLOBALS INITS
 Minim minim;
 SoundController sound;
 
-
-//DEBUGGERY\\
-Object FFD;
+//DEBUGGERY
+Object CONTEXT;
 int bkg = 100;
 
 void setup(){
+    //Basic Setup
     size(800,800);
-
     frameRate(120);
 
-    snek.AddNode(4,5);
-    snek.AddNode(4,5);
-    snek.AddNode(4,5);
-    snek.AddNode(4,5);
+    //Set File loading Context
+    CONTEXT = this;
 
-    FFD = this;
-
+    //Load Sound Controller
     sound = new SoundController();
     sound.LoadMusic();
 }
 
 void draw(){
-    println(frameRate);
- 
     //Update the game on timer
     if(GameTime.Triggered()) HandleGame();
 }
 
 void HandleGame(){
-    //Clear Background
-    background(bkg);
+    //Reset Background color
+    bkg = 200;
 
     //Update Sound and Beat Detection
     sound.Update();
+
+    //Clear Background
+    background(bkg);
 
     //Manipulate Snake Object
     snek.Show();
@@ -54,8 +51,8 @@ void HandleGame(){
 
     //Manipulate Food
     if(goal.isEaten(snek._posX,snek._posY)) {
-        goal.Eat();
         snek.AddNode(snek._posX,snek._posY);
+        goal.Eat();
     }
     
     goal.Show();
@@ -69,3 +66,18 @@ void keyPressed(){
     if(key == 's') snek.SetVelocity( 0, 1);
     if(key == 'd') snek.SetVelocity( 1, 0);
 }
+
+void onBeatEvent(){
+    bkg = 51;
+}
+
+/*
+TODO:
+    Death State
+    Sync Snake movment to beat
+    Level Loading
+        Multiple Songs
+        BPM Change
+        Default Color shift
+
+*/
