@@ -4,6 +4,7 @@ import processing.event.*;
 import processing.opengl.*; 
 
 import ddf.minim.*; 
+import ddf.minim.analysis.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -18,35 +19,53 @@ public class SnakeSnakeRevolution extends PApplet {
 
 
 
+
 //CONSTANTS
-final int TILESIZE = 50;
+final int TILESIZE = 20;
 
 //GLOBALS
 Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
 
 Timer GameTime = new Timer(100);
+
 Minim minim;
+SoundController sound;
+
+
+//DEBUGGERY\\
+Object FFD;
+int bkg = 100;
 
 public void setup(){
     
-    
-    minim = new Minim(this);
+
+    frameRate(120);
 
     snek.AddNode(4,5);
     snek.AddNode(4,5);
     snek.AddNode(4,5);
     snek.AddNode(4,5);
+
+    FFD = this;
+
+    sound = new SoundController();
+    sound.LoadMusic();
 }
 
 public void draw(){
+    println(frameRate);
+ 
     //Update the game on timer
     if(GameTime.Triggered()) HandleGame();
 }
 
 public void HandleGame(){
     //Clear Background
-    background(51);
+    background(bkg);
+
+    //Update Sound and Beat Detection
+    sound.Update();
 
     //Manipulate Snake Object
     snek.Show();
@@ -64,10 +83,10 @@ public void HandleGame(){
 public void keyPressed(){
     //TODO: Replace with analog arduino inputs
     //Handle Keyboard Inputs
-    if(key == 'w') snek.SetVelocity(0,-1);
-    if(key == 'a') snek.SetVelocity(-1,0);
-    if(key == 's') snek.SetVelocity(0,1);
-    if(key == 'd') snek.SetVelocity(1,0);
+    if(key == 'w') snek.SetVelocity (0,-1);
+    if(key == 'a') snek.SetVelocity(-1, 0);
+    if(key == 's') snek.SetVelocity( 0, 1);
+    if(key == 'd') snek.SetVelocity( 1, 0);
 }
 
 public class Food {
@@ -219,8 +238,96 @@ class Snake extends Node{
     }
 }
 
+
+class SoundController {
+
+    String[] Music;
+    String[] Sounds;
+    
+    AudioPlayer _player;
+    AudioInput _input;
+    
+    BeatDetect detector;
+
+    Timer _beat = new Timer(fromBPM(45.75f/2.0f));
+    int _bpm;
+
+    boolean _MusicSynced;
+
+    public SoundController(){
+        //Initialize Minim library
+        minim = new Minim(FFD);
+
+        //Initialize Beat Detector
+        detector = new BeatDetect();
+
+        _player = minim.loadFile("test_song_1.mp3");
+        _player.play();
+    }
+
+    public void LoadSounds(){}
+    public void LoadMusic(){}
+
+
+    public void Update(){
+        if(onBeat()){
+            bkg = 51;
+        } else {
+            bkg = 200;
+        }
+    }
+
+
+    public void SetBPM(int bpm){
+        _beat = new Timer(fromBPM(bpm));
+        _beat.setLatency(100);
+        _bpm = bpm;
+    }
+
+    public int fromBPM(float bpm){
+        float sec = bpm / 60.0f;
+        float millis = sec * 1000;
+
+        return PApplet.parseInt(millis);
+    }
+
+    //TODO: Detect audio desync
+    public void Calibrate(){
+        if(detectRythm() && !onBeat()){
+            _beat.Reset();
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////
+    /////////////////////////Beat Detection////////////////////////
+    ///////////////////////////////////////////////////////////////
+
+    public boolean onBeat(){
+        int offset = _player.position()%fromBPM(96.0f/4.0f);
+        return (offset <= 150);
+    }
+
+    ///////////////////////////Depricated///////////////////////////
+
+    //Detect Down Beat
+    public boolean detectTiming() {
+        if(!_MusicSynced && _beat.Triggered()){
+            _player.cue(0);
+            _MusicSynced = true;
+        }
+
+        return _beat.Triggered();
+    }
+
+    public boolean detectRythm(){
+        detector.detect(_player.mix);
+        return detector.isOnset();
+    }
+}
+
 class Timer {
     float _interval;                                            //Time between ticks
+    float _latency;
     float _previousTick;                                        //Last time the system fired
 
     public Timer(float interval){
@@ -233,8 +340,10 @@ class Timer {
         float currentInterval = millis() - _previousTick;
 
         //Check if too much time has passed
-        if(currentInterval > _interval){
-            _previousTick = millis();                           //Update the previous interval
+        if(currentInterval >= _interval-_latency){
+            if(currentInterval >= _interval) 
+                _previousTick = millis();                           //Update the previous interval
+            
             return true;                                        //Return the frame to be true
         }
 
@@ -242,8 +351,12 @@ class Timer {
         return false;
     }
 
-    public void CalcBPM(){
-        
+    public void setLatency(float val){
+        _latency = val;
+    }
+
+    public void Reset(){
+        _previousTick = millis();
     }
 }
   public void settings() {  size(800,800); }
