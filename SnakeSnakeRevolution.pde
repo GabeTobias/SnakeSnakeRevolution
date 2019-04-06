@@ -9,6 +9,8 @@ Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
 Timer GameTime = new Timer(100);
 
+GameState State;
+
 //GLOBALS INITS
 Minim minim;
 SoundController sound;
@@ -45,6 +47,13 @@ void HandleGame(){
     //Clear Background
     background(bkg);
 
+    //Handle Game Over State
+    if(State == GameState.GameOver){
+        text("Game Over", 10,20);
+        return;
+    }
+
+
     //Manipulate Snake Object
     snek.Show();
     snek.Move();
@@ -71,9 +80,16 @@ void onBeatEvent(){
     bkg = 51;
 }
 
+enum GameState {
+    MainMenu ,
+    Playing,
+    Paused,
+    Loading,
+    GameOver
+}
+
 /*
 TODO:
-    Death State
     Sync Snake movment to beat
     Level Loading
         Multiple Songs

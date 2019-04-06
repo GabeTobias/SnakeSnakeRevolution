@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: <a href="https://go.microsoft.com/fwlink/?linkid=830387" target="_blank" rel="nofollow">https://go.microsoft.com/fwlink/?linkid=830387</a>
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Launch)- Last or current one!",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopOnEntry": false,
+            "mainClass": "nl.doekewartena.VSCode_Workaround_Launcher",
+            "projectName": "quadtree",
+            "args": "${relativeFile}"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Attach)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 0
+        }
+    ]
+}

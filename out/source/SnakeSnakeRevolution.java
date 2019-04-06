@@ -28,7 +28,9 @@ Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
 Timer GameTime = new Timer(100);
 
-//GLOBALS UNINITS
+GameState State;
+
+//GLOBALS INITS
 Minim minim;
 SoundController sound;
 
@@ -37,6 +39,7 @@ Object CONTEXT;
 int bkg = 100;
 
 public void setup(){
+    //Basic Setup
     
     frameRate(120);
 
@@ -54,6 +57,7 @@ public void draw(){
 }
 
 public void HandleGame(){
+    //Reset Background color
     bkg = 200;
 
     //Update Sound and Beat Detection
@@ -61,6 +65,13 @@ public void HandleGame(){
 
     //Clear Background
     background(bkg);
+
+
+    if(State == GameState.GameOver){
+        text("Game Over", 10,20);
+        return;
+    }
+
 
     //Manipulate Snake Object
     snek.Show();
@@ -87,6 +98,25 @@ public void keyPressed(){
 public void onBeatEvent(){
     bkg = 51;
 }
+
+enum GameState {
+    MainMenu ,
+    Playing,
+    Paused,
+    Loading,
+    GameOver
+}
+
+/*
+TODO:
+    Death State
+    Sync Snake movment to beat
+    Level Loading
+        Multiple Songs
+        BPM Change
+        Default Color shift
+
+*/
 
 public class Food {
     int _posX, _posY;
@@ -201,6 +231,9 @@ class Snake extends Node{
         if(_posY*TILESIZE > height) _posY = 0;
         if(_posX*TILESIZE < 0) _posX = width/TILESIZE;
         if(_posY*TILESIZE < 0) _posY = height/TILESIZE;
+
+        //Death Checks
+        if(OverlapsSelf()) State = GameState.GameOver;
     }
     
     public void AddNode(int x0, int y0) {
@@ -240,6 +273,17 @@ class Snake extends Node{
         } else {
             return _posY;
         }
+    }
+
+    public boolean OverlapsSelf(){
+        for(int i = 0; i < _nodes.size(); i++){
+            Node n = _nodes.get(i);
+            
+            if(_posX == n._posX && _posY == n._posY)
+                return true;
+        }
+
+        return false;
     }
 }
 
@@ -293,6 +337,10 @@ class SoundController {
         _beat.Reset();                              //Reset the timer
         _beat.setLatency(100);                      //Adjust the latency
         _bpm = bpm;
+    }
+
+    public void SetSubdivision(int sub){
+        _sub = sub;
     }
 
     public int fromBPM(float bpm){

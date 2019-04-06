@@ -50,6 +50,9 @@ class Snake extends Node{
         if(_posY*TILESIZE > height) _posY = 0;
         if(_posX*TILESIZE < 0) _posX = width/TILESIZE;
         if(_posY*TILESIZE < 0) _posY = height/TILESIZE;
+
+        //Death Checks
+        if(OverlapsSelf()) State = GameState.GameOver;
     }
     
     void AddNode(int x0, int y0) {
@@ -89,5 +92,17 @@ class Snake extends Node{
         } else {
             return _posY;
         }
+    }
+
+    //Detect Overlaps with the head node
+    boolean OverlapsSelf(){
+        for(int i = 0; i < _nodes.size(); i++){
+            Node n = _nodes.get(i);
+            
+            if(_posX == n._posX && _posY == n._posY)
+                return true;
+        }
+
+        return false;
     }
 }
