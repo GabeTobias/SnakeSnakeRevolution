@@ -2,26 +2,31 @@ import ddf.minim.*;
 import ddf.minim.analysis.*;
 
 //CONSTANTS
-final int TILESIZE = 20;
+final int TILESIZE = 40;
 
 //GLOBALS
 Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
 Timer GameTime = new Timer(100);
-
 GameState State;
 
 //GLOBALS INITS
-Minim minim;
+ParticleSystem particles;
 SoundController sound;
+Renderer renderer;
+LevelManager manager;
+
+Minim minim;
+Level level;
 
 //DEBUGGERY
 Object CONTEXT;
-int bkg = 100;
+int bkg = 255;
 
 void setup(){
     //Basic Setup
-    size(800,800);
+    size(800,800, P2D);
+    noStroke();
     frameRate(120);
 
     //Set File loading Context
@@ -30,70 +35,160 @@ void setup(){
     //Load Sound Controller
     sound = new SoundController();
     sound.LoadMusic();
+
+    //Create a new Particle System
+    particles = new ParticleSystem();
+
+    //Initalize Level Manager
+    manager = new LevelManager();
+
+    //get Current Level from Level Init
+    level = manager.getLevel();
+
+    println(level._file);
+
+    //Initialize the Renderer
+    renderer = new Renderer();
 }
 
 void draw(){
-    //Update the game on timer
-    if(GameTime.Triggered()) HandleGame();
+    sound.Update();             //Update Sound and Beat Detection
+
+    Render();                   //Render scene object to screen              
+    HandleGameplay();           //Update scene object
 }
 
-void HandleGame(){
-    //Reset Background color
-    bkg = 200;
-
-    //Update Sound and Beat Detection
-    sound.Update();
-
-    //Clear Background
+void Render(){
+    //Clear the screen
     background(bkg);
 
-    //Handle Game Over State
+    //Render level walls
+    level.Show();
+
+    //Render Non-static objects
+    snek.Show();                    //Manipulate Snake Object
+    goal.Show();                    //Render Goal Object
+
     if(State == GameState.GameOver){
-        text("Game Over", 10,20);
+
+        fill(25,170);
+        rect(0,0,800,800);
+
+        fill(255);
+        textSize(100);
+        text("Game Over", 400-(textWidth("Game Over")/2),400);
+
+        textSize(30);
+
         return;
     }
 
+    if(State == GameState.Loading){
 
-    //Manipulate Snake Object
-    snek.Show();
-    snek.Move();
+        fill(255,255);
+        rect(0,0,800,800);
+
+        fill(25);
+        textSize(100);
+        text("Loading", 400-(textWidth("Loading")/2),400);
+
+        textSize(30);
+
+        return;
+    }
+
+    particles.Show();               //Render Scene Particles
+}
+
+void HandleGameplay(){
+    //Update the level manager
+    manager.Update();
+
+    //Handle Game Over State
+    if(State == GameState.GameOver || State == GameState.Loading){
+        return;
+    }
 
     //Manipulate Food
-    if(goal.isEaten(snek._posX,snek._posY)) {
-        snek.AddNode(snek._posX,snek._posY);
+    if(goal.isEaten(snek._posX, snek._posY)) {
+        snek.AddNode(int(snek.Last().x), int(snek.Last().y));
         goal.Eat();
     }
-    
-    goal.Show();
+
+    //Update all scene particles
+    particles.Update();
 }
 
 void keyPressed(){
+    if(State == GameState.GameOver) return;
+    
+    if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
+
     //TODO: Replace with analog arduino inputs
     //Handle Keyboard Inputs
-    if(key == 'w') snek.SetVelocity (0,-1);
-    if(key == 'a') snek.SetVelocity(-1, 0);
-    if(key == 's') snek.SetVelocity( 0, 1);
-    if(key == 'd') snek.SetVelocity( 1, 0);
+    if(key == 'w'){
+        if(snek._velY == 0) snek.SetVelocity (0,-1);
+        else println("Wrong");
+    }
+    if(key == 'a'){
+        if(snek._velX == 0) snek.SetVelocity(-1, 0);
+        else println("Wrong");
+    }
+    if(key == 's') {
+        if(snek._velY == 0) snek.SetVelocity( 0, 1);
+        else println("Wrong");
+    }
+    if(key == 'd') {
+        if(snek._velX == 0) snek.SetVelocity( 1, 0);
+        else println("Wrong");
+    }
+
+    if(key == 'k') {
+         State = GameState.GameOver;
+    }
+
+    if(key == 'o') {
+        manager.ChangeLevel();
+    }
 }
 
 void onBeatEvent(){
-    bkg = 51;
+    
+    //Delay Gameplay 100 milliseconds
+    if(GameTime.Triggered()){
+        snek.Move();   
+    }
+
+    sound._lb = millis();
 }
 
 enum GameState {
-    MainMenu ,
+    MainMenu,
     Playing,
     Paused,
     Loading,
-    GameOver
+    GameOver,
+    Win
 }
 
 /*
 TODO:
-    Sync Snake movment to beat
     Level Loading
         Multiple Songs
         BPM Change
         Default Color shift
+        Basic Toolkit
 
+
+Level Loading Sequence
+    Pause Gameplay
+    Fade snake out 
+    Fade level out 
+
+    Load new Level Data
+
+    Fade level in
+    Set Snake Position
+    Fade Snake in
+    Play Level
 */

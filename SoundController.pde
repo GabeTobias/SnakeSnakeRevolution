@@ -18,6 +18,7 @@ class SoundController {
     //Music Timing Managment
     float _bpm = 96.0;
     float _sub = 2.0;
+    float _lb = 0;
 
     boolean _MusicSynced;
 
@@ -30,6 +31,7 @@ class SoundController {
 
         //Load the current audio and play
         _player = minim.loadFile("test_song_1.mp3");
+        _player.setGain(-80);
         _player.play();
     }
 

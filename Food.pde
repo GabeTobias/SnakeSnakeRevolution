@@ -2,9 +2,16 @@
 public class Food {
     int _posX, _posY;
 
+    Material _material;
+
     public Food (int x0, int y0) {
         _posX = x0;
         _posY = y0;    
+
+        //Initialize Render Object
+        _material = new Material();
+        
+        _material._color = new PVector(1,0.5f,0.5f);
     }
 
     boolean isEaten(int xx, int yy){
@@ -21,12 +28,22 @@ public class Food {
             TILESIZE,                   //width
             TILESIZE                    //height
         );
-
+        
         fill(255);
     }
 
-    void Eat(){
+    void ChangePosition(){
         _posX = (int)random(width/TILESIZE);
         _posY = (int)random(height/TILESIZE);    
+
+        while(level.GetBlock(_posX,_posY) != 0){
+            _posX = (int)random(width/TILESIZE);
+            _posY = (int)random(height/TILESIZE);   
+        }
+    }
+
+    void Eat(){
+        ChangePosition();
+        manager.foodCount++;
     }
 }
