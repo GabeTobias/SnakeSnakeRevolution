@@ -7,7 +7,7 @@ final int TILESIZE = 40;
 //GLOBALS
 Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
-Timer GameTime = new Timer(100);
+Timer GameTime = new Timer(50);
 GameState State;
 
 //GLOBALS INITS
@@ -49,6 +49,8 @@ void setup(){
 
     //Initialize the Renderer
     renderer = new Renderer();
+
+    Blur = loadImage("Blurr.png");
 }
 
 void draw(){
@@ -97,6 +99,21 @@ void Render(){
         return;
     }
 
+    if(State == GameState.Win){
+
+        fill(255,255);
+        rect(0,0,800,800);
+
+        fill(25);
+        textSize(80);
+        text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
+
+        textSize(30);
+
+        return;
+    }
+
+
     particles.Show();               //Render Scene Particles
 }
 
@@ -117,49 +134,6 @@ void HandleGameplay(){
 
     //Update all scene particles
     particles.Update();
-}
-
-void keyPressed(){
-    if(State == GameState.GameOver) return;
-    
-    if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
-
-    //TODO: Replace with analog arduino inputs
-    //Handle Keyboard Inputs
-    if(key == 'w'){
-        if(snek._velY == 0) snek.SetVelocity (0,-1);
-        else println("Wrong");
-    }
-    if(key == 'a'){
-        if(snek._velX == 0) snek.SetVelocity(-1, 0);
-        else println("Wrong");
-    }
-    if(key == 's') {
-        if(snek._velY == 0) snek.SetVelocity( 0, 1);
-        else println("Wrong");
-    }
-    if(key == 'd') {
-        if(snek._velX == 0) snek.SetVelocity( 1, 0);
-        else println("Wrong");
-    }
-
-    if(key == 'k') {
-         State = GameState.GameOver;
-    }
-
-    if(key == 'o') {
-        manager.ChangeLevel();
-    }
-}
-
-void onBeatEvent(){
-    
-    //Delay Gameplay 100 milliseconds
-    if(GameTime.Triggered()){
-        snek.Move();   
-    }
-
-    sound._lb = millis();
 }
 
 enum GameState {

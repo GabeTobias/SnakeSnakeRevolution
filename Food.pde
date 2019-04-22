@@ -22,9 +22,9 @@ public class Food {
         fill(255,100,100);
 
         //Draw the head position
-        rect(
-            _posX * TILESIZE,           //X position scaled by tilesize
-            _posY * TILESIZE,           //Y position scaled by tilesize
+        ellipse(
+            _posX * TILESIZE + (TILESIZE/2),           //X position scaled by tilesize
+            _posY * TILESIZE + (TILESIZE/2),           //Y position scaled by tilesize
             TILESIZE,                   //width
             TILESIZE                    //height
         );

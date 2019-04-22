@@ -26,7 +26,7 @@ final int TILESIZE = 40;
 //GLOBALS
 Snake snek = new Snake(5,5);
 Food goal = new Food(15,15);
-Timer GameTime = new Timer(100);
+Timer GameTime = new Timer(50);
 GameState State;
 
 //GLOBALS INITS
@@ -68,6 +68,8 @@ public void setup(){
 
     //Initialize the Renderer
     renderer = new Renderer();
+
+    Blur = loadImage("Blurr.png");
 }
 
 public void draw(){
@@ -116,6 +118,21 @@ public void Render(){
         return;
     }
 
+    if(State == GameState.Win){
+
+        fill(255,255);
+        rect(0,0,800,800);
+
+        fill(25);
+        textSize(80);
+        text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
+
+        textSize(30);
+
+        return;
+    }
+
+
     particles.Show();               //Render Scene Particles
 }
 
@@ -138,55 +155,13 @@ public void HandleGameplay(){
     particles.Update();
 }
 
-public void keyPressed(){
-    if(State == GameState.GameOver) return;
-    
-    if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
-
-    //TODO: Replace with analog arduino inputs
-    //Handle Keyboard Inputs
-    if(key == 'w'){
-        if(snek._velY == 0) snek.SetVelocity (0,-1);
-        else println("Wrong");
-    }
-    if(key == 'a'){
-        if(snek._velX == 0) snek.SetVelocity(-1, 0);
-        else println("Wrong");
-    }
-    if(key == 's') {
-        if(snek._velY == 0) snek.SetVelocity( 0, 1);
-        else println("Wrong");
-    }
-    if(key == 'd') {
-        if(snek._velX == 0) snek.SetVelocity( 1, 0);
-        else println("Wrong");
-    }
-
-    if(key == 'k') {
-         State = GameState.GameOver;
-    }
-
-    if(key == 'o') {
-        manager.ChangeLevel();
-    }
-}
-
-public void onBeatEvent(){
-    
-    //Delay Gameplay 100 milliseconds
-    if(GameTime.Triggered()){
-        snek.Move();   
-    }
-
-    sound._lb = millis();
-}
-
 enum GameState {
     MainMenu,
     Playing,
     Paused,
     Loading,
-    GameOver
+    GameOver,
+    Win
 }
 
 /*
@@ -234,9 +209,9 @@ public class Food {
         fill(255,100,100);
 
         //Draw the head position
-        rect(
-            _posX * TILESIZE,           //X position scaled by tilesize
-            _posY * TILESIZE,           //Y position scaled by tilesize
+        ellipse(
+            _posX * TILESIZE + (TILESIZE/2),           //X position scaled by tilesize
+            _posY * TILESIZE + (TILESIZE/2),           //Y position scaled by tilesize
             TILESIZE,                   //width
             TILESIZE                    //height
         );
@@ -258,6 +233,50 @@ public class Food {
         ChangePosition();
         manager.foodCount++;
     }
+}
+
+
+public void keyPressed(){
+    if(State == GameState.GameOver) return;
+    
+    if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
+
+    //TODO: Replace with analog arduino inputs
+    //Handle Keyboard Inputs
+    if(key == 'w'){
+        if(snek._velY == 0) snek.SetVelocity (0,-1);
+        else println("Wrong");
+    }
+    if(key == 'a'){
+        if(snek._velX == 0) snek.SetVelocity(-1, 0);
+        else println("Wrong");
+    }
+    if(key == 's') {
+        if(snek._velY == 0) snek.SetVelocity( 0, 1);
+        else println("Wrong");
+    }
+    if(key == 'd') {
+        if(snek._velX == 0) snek.SetVelocity( 1, 0);
+        else println("Wrong");
+    }
+
+    if(key == 'k') {
+         State = GameState.GameOver;
+    }
+
+    if(key == 'o') {
+        manager.ChangeLevel();
+    }
+}
+
+public void onBeatEvent(){
+    
+    //Delay Gameplay 100 milliseconds
+    if(GameTime.Triggered()){
+        snek.Move();   
+    }
+
+    sound._lb = millis();
 }
 
 class Level {
@@ -394,6 +413,10 @@ class LevelManager {
 }
 
 public void LoadLevelData(){
+    if(manager.currentLevel >= 2){
+        State = GameState.Win;
+    }
+
     manager.currentLevel++;
     level = manager.getLevel();
     manager.foodCount = 0;
@@ -726,6 +749,7 @@ Rendering:
         DrawSky()
 */
 
+PImage Blur;
 
 class Snake extends Node{
     int _posX, _posY;
@@ -746,7 +770,6 @@ class Snake extends Node{
         AddNode(x0,y0);
         AddNode(x0,y0);
         AddNode(x0,y0);
-
     }
 
     public void Show(){
@@ -774,6 +797,11 @@ class Snake extends Node{
                 _nodes.get(0)._posX*TILESIZE + (TILESIZE/2),
                 _nodes.get(0)._posY*TILESIZE + (TILESIZE/2)
             );
+            
+            // DrawBlurr(
+            //     _posX, _posY,
+            //     _nodes.get(0)._posX, _nodes.get(0)._posY
+            // );
         }
 
         //Render Node Listing
@@ -784,6 +812,12 @@ class Snake extends Node{
 
             if(abs(n1._posX - n2._posX) > 3) continue;
             if(abs(n1._posY - n2._posY) > 3) continue;
+
+
+            // DrawBlurr(
+            //     n1._posX, n1._posY,
+            //     n2._posX, n2._posY
+            // );
 
             line(
                 n1._posX*TILESIZE + (TILESIZE/2),
@@ -840,6 +874,36 @@ class Snake extends Node{
 
         //Death Checks
         if(OverlapsSelf()) State = GameState.GameOver;
+    }
+
+    public void DrawBlurr(int x0, int y0, int x1, int y1){
+        int x2 = x0 * TILESIZE;
+        int y2 = y0 * TILESIZE;
+
+        int x3 = x1 * TILESIZE;
+        int y3 = y1 * TILESIZE;
+
+        
+        boolean hor = x2 == x3;
+
+        
+        int w = abs(x2-x3) + ((hor) ? 0:16);
+        int h = abs(y2-y3) + ((hor) ? 16:0);
+
+        int xx = (x2 > x3) ? x3-4:x2-4;
+        int yy = (y2 > y3) ? y3-4:y2-4;
+
+        if(hor) xx -= 8;
+        else yy -=8;
+
+        tint(100,100,255,255);
+
+        image(
+            Blur,
+            (x2 > x3) ? x3-4:x2-4,
+            (y2 > y3) ? y3-4:y2-4,
+            w+48,h+48
+        );
     }
     
     public void AddNode(int x0, int y0) {

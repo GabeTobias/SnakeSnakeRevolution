@@ -45,6 +45,10 @@ class LevelManager {
 }
 
 void LoadLevelData(){
+    if(manager.currentLevel >= 2){
+        State = GameState.Win;
+    }
+
     manager.currentLevel++;
     level = manager.getLevel();
     manager.foodCount = 0;

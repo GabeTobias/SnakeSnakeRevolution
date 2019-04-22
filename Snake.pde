@@ -1,4 +1,5 @@
 
+PImage Blur;
 
 class Snake extends Node{
     int _posX, _posY;
@@ -19,7 +20,6 @@ class Snake extends Node{
         AddNode(x0,y0);
         AddNode(x0,y0);
         AddNode(x0,y0);
-
     }
 
     void Show(){
@@ -47,6 +47,11 @@ class Snake extends Node{
                 _nodes.get(0)._posX*TILESIZE + (TILESIZE/2),
                 _nodes.get(0)._posY*TILESIZE + (TILESIZE/2)
             );
+            
+            // DrawBlurr(
+            //     _posX, _posY,
+            //     _nodes.get(0)._posX, _nodes.get(0)._posY
+            // );
         }
 
         //Render Node Listing
@@ -57,6 +62,12 @@ class Snake extends Node{
 
             if(abs(n1._posX - n2._posX) > 3) continue;
             if(abs(n1._posY - n2._posY) > 3) continue;
+
+
+            // DrawBlurr(
+            //     n1._posX, n1._posY,
+            //     n2._posX, n2._posY
+            // );
 
             line(
                 n1._posX*TILESIZE + (TILESIZE/2),
@@ -113,6 +124,36 @@ class Snake extends Node{
 
         //Death Checks
         if(OverlapsSelf()) State = GameState.GameOver;
+    }
+
+    void DrawBlurr(int x0, int y0, int x1, int y1){
+        int x2 = x0 * TILESIZE;
+        int y2 = y0 * TILESIZE;
+
+        int x3 = x1 * TILESIZE;
+        int y3 = y1 * TILESIZE;
+
+        
+        boolean hor = x2 == x3;
+
+        
+        int w = abs(x2-x3) + ((hor) ? 0:16);
+        int h = abs(y2-y3) + ((hor) ? 16:0);
+
+        int xx = (x2 > x3) ? x3-4:x2-4;
+        int yy = (y2 > y3) ? y3-4:y2-4;
+
+        if(hor) xx -= 8;
+        else yy -=8;
+
+        tint(100,100,255,255);
+
+        image(
+            Blur,
+            (x2 > x3) ? x3-4:x2-4,
+            (y2 > y3) ? y3-4:y2-4,
+            w+48,h+48
+        );
     }
     
     void AddNode(int x0, int y0) {
