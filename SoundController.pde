@@ -1,10 +1,8 @@
 
 
 class SoundController {
-    //Audio file listing
-    String[] Music;
-    String[] Sounds;
-    
+    HashMap <String,AudioPlayer> SongLibrary = new HashMap<String,AudioPlayer>();
+
     //Active Audio Players
     AudioPlayer _player;
     AudioInput _input;
@@ -32,17 +30,37 @@ class SoundController {
         //Load the current audio and play
         _player = minim.loadFile("test_song_1.mp3");
         _player.setGain(-80);
-        _player.play();
+        _player.loop();
     }
 
     //Future Audio Managment
     public void LoadSounds(){}
-    public void LoadMusic(){}
+    
+    public void LoadMusic(){
+        for(int i = 0; i < manager.Levels.size(); i++){
+            //Load song into memory
+            Level l = manager.Levels.get(i);
+            AudioPlayer player = minim.loadFile(l._song);
 
+            //Add Song to library
+            SongLibrary.put(l._song,player);
+        }
+    }
+
+    public void PlayLevelSong(Level l){
+        //Pause current song
+        _player.pause();
+
+        //Select levels song from library
+        _player = SongLibrary.get(l._song);
+
+        //Play song
+        _player.loop();
+    }
 
     public void Update(){
-        boolean checkBeat = onBeat();              //Check if frame is on beat
-        if(checkBeat) onBeatEvent();               //Change background to beat
+        boolean checkBeat = onBeat();               //Check if frame is on beat
+        if(checkBeat) onBeatEvent();                //Change background to beat
     }
 
 
@@ -64,13 +82,6 @@ class SoundController {
         return int(millis);
     }
 
-    //TODO: Detect audio desync
-    public void Calibrate(){
-        if(detectRythm() && !onBeat()) {            //Detect Audio Desync
-            _beat.Reset();                          //Reset the Audio
-        }
-    }
-
     ///////////////////////////////////////////////////////////////
     /////////////////////////Beat Detection////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -80,7 +91,7 @@ class SoundController {
         int time = _player.position();              //Time since audio started
         int offset = time % beatTiming;             //Time till the next beat
         
-        return (offset <= 250);
+        return (offset <= 300);
     }
 
     ///////////////////////////Depricated///////////////////////////
@@ -93,6 +104,13 @@ class SoundController {
         }
 
         return _beat.Triggered();                   //Check the audio timer
+    }
+
+    //TODO: Detect audio desync
+    public void Calibrate(){
+        if(detectRythm() && !onBeat()) {            //Detect Audio Desync
+            _beat.Reset();                          //Reset the Audio
+        }
     }
 
     public boolean detectRythm(){

@@ -25,6 +25,10 @@ class Timer {
         return false;
     }
 
+    int getTime(){
+        return (int)((millis() - _previousTick)/1000);
+    }
+
     public void setLatency(float val){
         _latency = val;
     }

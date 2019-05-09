@@ -4,7 +4,8 @@ class LevelManager {
     int LoadStart;
 
     int currentLevel;                                       //The current level loaded on the scene
-    int foodCount;
+    int foodCountPlayer1;
+    int foodCountPlayer2;
 
     public LevelManager(){
         LoadLevels(SelectLevels());
@@ -17,13 +18,14 @@ class LevelManager {
 
     void LoadLevels(String[] unloadedLevels){
         for (int i = 0; i < unloadedLevels.length; ++i) {
+            //Load Level Data
             Level l = new Level(unloadedLevels[i]);
             Levels.add(l);
         }
     }
 
     void Update(){
-        if(foodCount > 3) ChangeLevel();
+        if(foodCountPlayer1 > 3 || foodCountPlayer2 > 3) ChangeLevel();
 
         if(State == GameState.Loading){
             if(millis() - LoadStart > 3000){
@@ -51,10 +53,14 @@ void LoadLevelData(){
 
     manager.currentLevel++;
     level = manager.getLevel();
-    manager.foodCount = 0;
+    
+    manager.foodCountPlayer1 = 0;
+    manager.foodCountPlayer2 = 0;
 
     snek.Reload();
     goal.ChangePosition();
+
+    sound.PlayLevelSong(level);
 }
 
 /*

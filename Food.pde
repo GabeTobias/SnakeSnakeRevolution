@@ -42,8 +42,9 @@ public class Food {
         }
     }
 
-    void Eat(){
+    void Eat(boolean second){
         ChangePosition();
-        manager.foodCount++;
+        if(second)manager.foodCountPlayer2++;
+        else manager.foodCountPlayer2++;
     }
 }

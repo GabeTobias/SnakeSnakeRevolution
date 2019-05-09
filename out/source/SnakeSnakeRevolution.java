@@ -5,6 +5,7 @@ import processing.opengl.*;
 
 import ddf.minim.*; 
 import ddf.minim.analysis.*; 
+import java.util.Map; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -20,27 +21,15 @@ public class SnakeSnakeRevolution extends PApplet {
 
 
 
+
 //CONSTANTS
 final int TILESIZE = 40;
-
-//GLOBALS
-Snake snek = new Snake(5,5);
-Food goal = new Food(15,15);
-Timer GameTime = new Timer(50);
-GameState State;
-
-//GLOBALS INITS
-ParticleSystem particles;
-SoundController sound;
-Renderer renderer;
-LevelManager manager;
-
-Minim minim;
-Level level;
 
 //DEBUGGERY
 Object CONTEXT;
 int bkg = 255;
+
+int GameMode = 0;
 
 public void setup(){
     //Basic Setup
@@ -48,142 +37,62 @@ public void setup(){
     noStroke();
     frameRate(120);
 
+    //Load Font
+    PFont maven = createFont("Maven.ttf", 128);
+    textFont(maven);
+
     //Set File loading Context
     CONTEXT = this;
 
-    //Load Sound Controller
-    sound = new SoundController();
-    sound.LoadMusic();
+    //Initialize Gameplay variables
+    InitGame();
 
-    //Create a new Particle System
-    particles = new ParticleSystem();
-
-    //Initalize Level Manager
-    manager = new LevelManager();
-
-    //get Current Level from Level Init
-    level = manager.getLevel();
-
-    println(level._file);
-
-    //Initialize the Renderer
-    renderer = new Renderer();
-
+    //Load images
     Blur = loadImage("Blurr.png");
 }
 
 public void draw(){
-    sound.Update();             //Update Sound and Beat Detection
+    switch (GameMode) {
+        //Start Screen
+        case 0:
+            background(0);
+            StartMenu();
+            break;
 
+        //Single Player Select
+        case 1:
+            background(125);
+            CharecterSelect();
+            break;
+
+        //Instruction Screen
+        case 2:
+            background(250);
+            Instructions();
+            break;
+
+        //Gameplay
+        case 3: 
+            RunGame();
+            break;
+    }
+}
+
+public void RunGame(){
     Render();                   //Render scene object to screen              
     HandleGameplay();           //Update scene object
 }
 
-public void Render(){
-    //Clear the screen
-    background(bkg);
+public void RunGUI(){}
 
-    //Render level walls
-    level.Show();
-
-    //Render Non-static objects
-    snek.Show();                    //Manipulate Snake Object
-    goal.Show();                    //Render Goal Object
-
-    if(State == GameState.GameOver){
-
-        fill(25,170);
-        rect(0,0,800,800);
-
-        fill(255);
-        textSize(100);
-        text("Game Over", 400-(textWidth("Game Over")/2),400);
-
-        textSize(30);
-
-        return;
-    }
-
-    if(State == GameState.Loading){
-
-        fill(255,255);
-        rect(0,0,800,800);
-
-        fill(25);
-        textSize(100);
-        text("Loading", 400-(textWidth("Loading")/2),400);
-
-        textSize(30);
-
-        return;
-    }
-
-    if(State == GameState.Win){
-
-        fill(255,255);
-        rect(0,0,800,800);
-
-        fill(25);
-        textSize(80);
-        text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
-
-        textSize(30);
-
-        return;
-    }
-
-
-    particles.Show();               //Render Scene Particles
-}
-
-public void HandleGameplay(){
-    //Update the level manager
-    manager.Update();
-
-    //Handle Game Over State
-    if(State == GameState.GameOver || State == GameState.Loading){
-        return;
-    }
-
-    //Manipulate Food
-    if(goal.isEaten(snek._posX, snek._posY)) {
-        snek.AddNode(PApplet.parseInt(snek.Last().x), PApplet.parseInt(snek.Last().y));
-        goal.Eat();
-    }
-
-    //Update all scene particles
-    particles.Update();
-}
-
-enum GameState {
-    MainMenu,
-    Playing,
-    Paused,
-    Loading,
-    GameOver,
-    Win
-}
 
 /*
-TODO:
-    Level Loading
-        Multiple Songs
-        BPM Change
-        Default Color shift
-        Basic Toolkit
 
+Assets
+    Arrow Tile Sets
+    Misteps Box
+    Background 
 
-Level Loading Sequence
-    Pause Gameplay
-    Fade snake out 
-    Fade level out 
-
-    Load new Level Data
-
-    Fade level in
-    Set Snake Position
-    Fade Snake in
-    Play Level
 */
 
 public class Food {
@@ -229,54 +138,367 @@ public class Food {
         }
     }
 
-    public void Eat(){
+    public void Eat(boolean second){
         ChangePosition();
-        manager.foodCount++;
+        if(second)manager.foodCountPlayer2++;
+        else manager.foodCountPlayer2++;
+    }
+}
+//Selection Colors
+int[] selectOptions = {color(255,224,102),color(103,65,217),color(34,184,207),color(130,201,30),color(253,126,20),color(240,62,62)};
+
+//Snake position
+int sx1 = 300,sx2 = 1000;
+int sy1 = 100,sy2 = 100;
+
+//Charecter Selections
+int snake1,snake2;
+
+//Multiplayer Toggle
+boolean secondPlayer;
+
+//Player Readdy
+boolean ready1,ready2;
+
+//Ready Timer
+Timer rTimer = new Timer(8000);
+
+//Count Down Count
+int countDown = -1;
+
+public void StartMenu(){}
+
+public void CharecterSelect() {
+    //Render Snakes
+    fill(selectOptions[snake1]);
+    rect(sx1,sy1, 200,200);                                                             //Player 1
+
+    rect((snake1*100)+125,590,50,10,30);                                                //Cursor 1
+    
+    fill(selectOptions[snake2]);
+    rect(sx2,sy2, 200,200);                                                             //Player 2
+
+    rect((snake2*100)+125 + ((secondPlayer) ? 0:800),590,50,10, 30);                    //Cursor 2
+
+    snek.myColor = selectOptions[snake1];
+    snek2.myColor = selectOptions[snake2];
+
+    //Move Snake Positions
+    if(secondPlayer){
+        sx1 = (int)lerp(sx1,125,0.1f);
+        sx2 = (int)lerp(sx2,470,0.1f);
+    }
+
+    //Draw Color options
+    for (int i = 0; i < 6; ++i) {
+        fill(selectOptions[i]);
+        ellipse(
+            (i*100)+150,
+            550,
+            50,50
+        );
+    }
+
+    //Ready Box 1
+    fill((ready1) ? 255:100);
+    rect(sx1, 675, 200,50,20);
+
+    //Ready Box 2
+    fill((ready2) ? 255:100);
+    rect(sx2, 675, 200,50,20);
+
+    //Draw Countdown Timer
+    if(countDown > -1 && countDown < 6){
+        fill(255);
+        textSize(100);
+        text(countDown,(width/2)-(textWidth(str(countDown))/2),(height/2)-(textAscent()/2));
+    }
+
+
+    if(ready1 && ready2 || ready1 && !secondPlayer){
+        countDown = 8 - rTimer.getTime();
+        if(rTimer.Triggered()) GameMode++;
     }
 }
 
+public void Instructions(){}
+//GLOBALS
+Snake snek = new Snake(5,5);
+Snake snek2 = new Snake(15,5,true);
+
+Food goal = new Food(15,15);
+Timer GameTime = new Timer(50);
+GameState State = GameState.Playing;
+
+//GLOBALS INITS
+ParticleSystem particles;
+SoundController sound;
+Renderer renderer;
+LevelManager manager;
+
+Minim minim;
+Level level;
+
+public void InitGame(){
+    //Initalize Level Manager
+    manager = new LevelManager();
+
+    //Load Sound Controller
+    sound = new SoundController();
+    sound.LoadMusic();
+
+    //Create a new Particle System
+    particles = new ParticleSystem();
+
+    //get Current Level from Level Init
+    level = manager.getLevel();
+
+    println(level._file);
+
+    //Initialize the Renderer
+    renderer = new Renderer();
+}
+
+
+public void Render(){
+    //Clear the screen
+    background(bkg);
+
+    //Render level walls
+    level.Show();
+
+    //Render Non-static objects
+    snek.Show();                    //Manipulate Snake Object
+    if(secondPlayer)snek2.Show();   //Manipulate Snake Object
+
+    goal.Show();                    //Render Goal Object
+
+
+    if(State == GameState.GameOver){
+
+        fill(25,170);
+        rect(0,0,800,800);
+
+        fill(255);
+        textSize(100);
+        text("Game Over", 400-(textWidth("Game Over")/2),400);
+
+        textSize(30);
+
+        return;
+    }
+
+    if(State == GameState.Loading){
+
+        fill(255,255);
+        rect(0,0,800,800);
+
+        fill(25);
+        textSize(100);
+        text("Loading", 400-(textWidth("Loading")/2),400);
+
+        textSize(30);
+
+        return;
+    }
+
+    if(State == GameState.Win){
+
+        fill(255,255);
+        rect(0,0,800,800);
+
+        fill(25);
+        textSize(80);
+        text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
+
+        textSize(30);
+
+        return;
+    }
+
+    particles.Show();               //Render Scene Particles
+}
+
+
+public void HandleGameplay(){       
+    //Update the level manager
+    manager.Update();
+
+    //Handle Game Over State
+    if(State == GameState.GameOver || State == GameState.Loading){
+        return;
+    }
+
+    //Manipulate Food
+    if(goal.isEaten(snek._posX, snek._posY)) {
+        snek.AddNode(PApplet.parseInt(snek.Last().x), PApplet.parseInt(snek.Last().y),false);
+        goal.Eat(false);
+    }
+
+    //Manipulate Food
+    if(secondPlayer && goal.isEaten(snek2._posX, snek2._posY)) {
+        snek2.AddNode(PApplet.parseInt(snek2.Last().x), PApplet.parseInt(snek2.Last().y),true);
+        goal.Eat(true);
+    }
+
+    //Update Sound and Beat Detection
+    sound.Update();      
+
+    //Update all scene particles
+    particles.Update();
+}
+
+public void onBeatEvent(){
+    
+    //Delay Gameplay 100 milliseconds
+    if(GameTime.Triggered() && State == GameState.Playing){
+        snek.Move();
+        if(secondPlayer) snek2.Move();
+    }
+
+    sound._lb = millis();
+}
+
+enum GameState {
+    Playing,
+    Loading,
+    GameOver,
+    Win
+}
+boolean W,A,S,D;
+boolean I,J,K,L;
 
 public void keyPressed(){
+    if(GameMode == 3) GameplayInput();
+    else MenuInput();
+}
+
+public void keyReleased(){
+    if(GameMode == 3) GameplayRelease();
+}
+
+public void GameplayRelease(){
+    if(key == 'w')  W = false;
+    if(key == 'a')  A = false;
+    if(key == 's')  S = false;
+    if(key == 'd')  D = false;
+
+    if(key == 'i')  I = false;
+    if(key == 'j')  J = false;
+    if(key == 'k')  K = false;
+    if(key == 'l')  L = false;
+}
+
+public void GameplayInput(){
     if(State == GameState.GameOver) return;
     
     if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
 
     //TODO: Replace with analog arduino inputs
-    //Handle Keyboard Inputs
-    if(key == 'w'){
-        if(snek._velY == 0) snek.SetVelocity (0,-1);
-        else println("Wrong");
+    //Handle Player 1 Inputs
+    if(key == 'w' && !W){
+        if(snek._pVelY == 0 && level.GetBlock(snek._posX,snek._posY-1) != 1) 
+            snek.SetVelocity (0,-1);
+        
+        W = true;
     }
-    if(key == 'a'){
-        if(snek._velX == 0) snek.SetVelocity(-1, 0);
-        else println("Wrong");
-    }
-    if(key == 's') {
-        if(snek._velY == 0) snek.SetVelocity( 0, 1);
-        else println("Wrong");
-    }
-    if(key == 'd') {
-        if(snek._velX == 0) snek.SetVelocity( 1, 0);
-        else println("Wrong");
+    if(key == 'a' && !A){
+        if(snek._pVelX == 0 && level.GetBlock(snek._posX-1,snek._posY) != 1) 
+            snek.SetVelocity(-1, 0);
+        
+        A = true;
     }
 
+    if(key == 's' && !S) {
+        if(snek._pVelY == 0 && level.GetBlock(snek._posX,snek._posY+1) != 1) 
+            snek.SetVelocity( 0, 1);
+        
+        S = true;
+    }
+
+    if(key == 'd' && !D) {
+        if(snek._pVelX == 0 && level.GetBlock(snek._posX+1,snek._posY) != 1) 
+            snek.SetVelocity( 1, 0);
+        
+        D = true;
+    }
+
+    //Handle Player 2 Inputs
+    if(key == 'i'){
+        if(snek2._pVelY == 0 && level.GetBlock(snek2._posX,snek2._posY-1) != 1)
+            snek2.SetVelocity (0,-1);
+
+        I = true;
+    }
+    if(key == 'j'){
+        if(snek2._pVelX == 0 && level.GetBlock(snek2._posX-1,snek2._posY) != 1) 
+            snek2.SetVelocity(-1, 0);
+
+        J = true;
+    }
     if(key == 'k') {
+        if(snek2._pVelY == 0 && level.GetBlock(snek2._posX,snek2._posY+1) != 1) 
+            snek2.SetVelocity( 0, 1);
+
+        K = true;
+    }
+    if(key == 'l') {
+        if(snek2._pVelX == 0 && level.GetBlock(snek2._posX+1,snek2._posY) != 1) 
+            snek2.SetVelocity( 1, 0);
+
+        L = true;
+    }
+
+    if(key == 'g') {
          State = GameState.GameOver;
     }
 
     if(key == 'o') {
         manager.ChangeLevel();
     }
+
 }
 
-public void onBeatEvent(){
-    
-    //Delay Gameplay 100 milliseconds
-    if(GameTime.Triggered()){
-        snek.Move();   
+public void MenuInput(){
+    if(key == 'p'){
+        GameMode = (GameMode+1)%4;
     }
+    
+    switch (GameMode) {
+        //Start Screen
+        case 0:
+            GameMode++;
+            break;
 
-    sound._lb = millis();
+        //Player Select
+        case 1:
+            //Player 2 controls
+            if(key == 'i') { 
+                if(!secondPlayer) secondPlayer = true;
+                else ready2 = true;
+                
+                rTimer.Reset();
+            }
+            if(key == 'j') snake2--;
+            if(key == 'l') snake2++;
+
+            //Player 1 controls
+            if(key == 'a') snake1--;
+            if(key == 'd') snake1++;
+            if(key == 'w'){
+                ready1 = true;
+                rTimer.Reset();
+            }
+
+            snake1 = constrain(snake1,0,5);
+            snake2 = constrain(snake2,0,5);
+            break;
+
+        //Instruction Screen
+        case 2:
+            GameMode++;
+            break;
+    }
 }
 
 class Level {
@@ -285,7 +507,7 @@ class Level {
 
     int _width, _height;
     int _stroke = 12;
-    String _file;
+    String _file,_song;
 
     public Level(int w, int h){
         //Initialize the array
@@ -313,6 +535,8 @@ class Level {
         //Load file Dimensions
         _width = file.getInt("width");
         _height = file.getInt("height");
+
+        _song = file.getString("Song");
 
         //Reset Data 
         Data = new int[_width][_height];
@@ -350,6 +574,30 @@ class Level {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public void DrawBlockRounded(int x0, int y0){
+        boolean tl = false;
+        boolean tr = false;
+        boolean bl = false;
+        boolean br = false;
+
+        tl = Data[x0][y0+1] == 0 || Data[x0-1][y0] == 0;
+        tr = Data[x0][y0+1] == 0 || Data[x0+1][y0] == 0;
+        bl = Data[x0][y0-1] == 0 || Data[x0-1][y0] == 0;
+        br = Data[x0][y0-1] == 0 || Data[x0+1][y0] == 0;
+
+        //Draw the head position
+        rect(
+            (x0 * TILESIZE),                              //X position scaled by tilesize
+            (y0 * TILESIZE),                              //Y position scaled by tilesize
+            (TILESIZE),                                   //width
+            (TILESIZE)                                    //height
+            ,(tl) ? 0:10
+            ,(tr) ? 0:10
+            ,(br) ? 0:10
+            ,(bl) ? 0:10
+        );
+    }
+
     public void DrawBlock(int x0, int y0){
         //Draw the head position
         rect(
@@ -372,7 +620,8 @@ class LevelManager {
     int LoadStart;
 
     int currentLevel;                                       //The current level loaded on the scene
-    int foodCount;
+    int foodCountPlayer1;
+    int foodCountPlayer2;
 
     public LevelManager(){
         LoadLevels(SelectLevels());
@@ -385,13 +634,14 @@ class LevelManager {
 
     public void LoadLevels(String[] unloadedLevels){
         for (int i = 0; i < unloadedLevels.length; ++i) {
+            //Load Level Data
             Level l = new Level(unloadedLevels[i]);
             Levels.add(l);
         }
     }
 
     public void Update(){
-        if(foodCount > 3) ChangeLevel();
+        if(foodCountPlayer1 > 3 || foodCountPlayer2 > 3) ChangeLevel();
 
         if(State == GameState.Loading){
             if(millis() - LoadStart > 3000){
@@ -419,10 +669,14 @@ public void LoadLevelData(){
 
     manager.currentLevel++;
     level = manager.getLevel();
-    manager.foodCount = 0;
+    
+    manager.foodCountPlayer1 = 0;
+    manager.foodCountPlayer2 = 0;
 
     snek.Reload();
     goal.ChangePosition();
+
+    sound.PlayLevelSong(level);
 }
 
 /*
@@ -430,19 +684,22 @@ public void LoadLevelData(){
     - Load every level as the scene changes
     ** Preload only the levels needed to complete the game **
 */
-
-
 class Node {
     int _posX, _posY;
     int _nxt;
 
-    public Node(int x0, int y0, int next){
+    boolean second;
+
+    public Node(int x0, int y0, int next, boolean s){
         //Set initial position
         _posX = x0;
         _posY = y0;
     
         //Set the index of the next node in the list
         _nxt = next;
+
+        //Set attached Snake
+        second = s;
     }
 
     public void Show(){
@@ -456,8 +713,13 @@ class Node {
     }
 
     public void Move() {
-        _posX = snek.GetNodeX(_nxt);
-        _posY = snek.GetNodeY(_nxt);
+        if(!second){
+            _posX = snek.GetNodeX(_nxt);
+            _posY = snek.GetNodeY(_nxt);
+        } else {
+            _posX = snek2.GetNodeX(_nxt);
+            _posY = snek2.GetNodeY(_nxt);
+        }
     }
 }
 
@@ -754,26 +1016,50 @@ PImage Blur;
 class Snake extends Node{
     int _posX, _posY;
     int _velX = 1, _velY;
+    int _pVelX = 1, _pVelY;
+
+    boolean second;
+
+    int myColor;
 
     ArrayList<Node> _nodes = new ArrayList<Node>();
 
     public Snake(int x0, int y0){
         //Pass variables to parent with a null next node
-        super(x0,y0,0);
+        super(x0,y0,0,false);
 
         //Set default position of head
         _posX = x0;
         _posY = y0;
 
         //Add default body
-        AddNode(x0,y0);
-        AddNode(x0,y0);
-        AddNode(x0,y0);
-        AddNode(x0,y0);
+        AddNode(x0,y0,false);
+        AddNode(x0,y0,false);
+        AddNode(x0,y0,false);
+        AddNode(x0,y0,false);
+    }
+
+    public Snake(int x0, int y0, boolean s){
+        //Pass variables to parent with a null next node
+        super(x0,y0,0,true);
+
+        //Set default position of head
+        _posX = x0;
+        _posY = y0;
+
+        second = s;
+
+        //Add default body
+        AddNode(x0,y0,s);
+        AddNode(x0,y0,s);
+        AddNode(x0,y0,s);
+        AddNode(x0,y0,s);
+
+        second = true;
     }
 
     public void Show(){
-        fill((sound.onBeat() ? color(100):color(100,100,255)));
+        fill((sound.onBeat() ? myColor:color(100)));
 
         //Draw the head position
         ellipse(
@@ -783,8 +1069,8 @@ class Snake extends Node{
             TILESIZE                    //height
         );
 
-        stroke((sound.onBeat() ? color(100):color(100,100,255)));
-        strokeWeight(20);
+        stroke((sound.onBeat() ? myColor:color(100)));
+        strokeWeight(TILESIZE/2);
 
         boolean b = (abs(_posX - _nodes.get(0)._posX) > 3);
         boolean a = (abs(_posY - _nodes.get(0)._posY) > 3);
@@ -798,10 +1084,6 @@ class Snake extends Node{
                 _nodes.get(0)._posY*TILESIZE + (TILESIZE/2)
             );
             
-            // DrawBlurr(
-            //     _posX, _posY,
-            //     _nodes.get(0)._posX, _nodes.get(0)._posY
-            // );
         }
 
         //Render Node Listing
@@ -812,12 +1094,6 @@ class Snake extends Node{
 
             if(abs(n1._posX - n2._posX) > 3) continue;
             if(abs(n1._posY - n2._posY) > 3) continue;
-
-
-            // DrawBlurr(
-            //     n1._posX, n1._posY,
-            //     n2._posX, n2._posY
-            // );
 
             line(
                 n1._posX*TILESIZE + (TILESIZE/2),
@@ -847,24 +1123,27 @@ class Snake extends Node{
         if(level.GetBlock(nextX,nextY) != 0){
             //if moving along x axis change to y direction
             if(nextX != _posX){
-                boolean up = level.GetBlock(_posX,_posY+1) != 0;
-                boolean down = level.GetBlock(_posX,_posY-1) != 0;
+                boolean up = level.GetBlock(_posX,_posY+1) != 0 && !OverlapsPoint(_posX,_posY+1);
+                boolean down = level.GetBlock(_posX,_posY-1) != 0 && !OverlapsPoint(_posX,_posY-1);
 
                 _velX = 0;
                 _velY = (up) ? -1 : 1;
 
             } else {
-                boolean right = level.GetBlock(_posX+1,_posY) != 0;
-                boolean left = level.GetBlock(_posX-1,_posY) != 0;
+                boolean right = level.GetBlock(_posX+1,_posY) != 0 && !OverlapsPoint(_posX-1,_posY);
+                boolean left = level.GetBlock(_posX-1,_posY) != 0 && !OverlapsPoint(_posX-1,_posY);
 
                 _velX = (right) ? -1 : 1;
                 _velY = 0;
-            }
+            } 
         }
 
         //Move the snake head
         _posX += _velX;
         _posY += _velY;
+
+        _pVelX = _velX;
+        _pVelY = _velY;
 
         //Loop head position
         if(_posX*TILESIZE > width-1) _posX = 0;
@@ -873,7 +1152,12 @@ class Snake extends Node{
         if(_posY*TILESIZE < 0) _posY = height/TILESIZE;
 
         //Death Checks
-        if(OverlapsSelf()) State = GameState.GameOver;
+        if(OverlapsSelf()) {
+            if(!secondPlayer) State = GameState.GameOver;
+            else Reload();
+            
+            println("Overlap");
+        }
     }
 
     public void DrawBlurr(int x0, int y0, int x1, int y1){
@@ -906,12 +1190,12 @@ class Snake extends Node{
         );
     }
     
-    public void AddNode(int x0, int y0) {
+    public void AddNode(int x0, int y0, boolean s) {
         //Find the last usable node
         int nxt = (_nodes.size() > 0) ? _nodes.size() : 0;
 
         //Create a new node
-        Node n = new Node(x0,y0, nxt);
+        Node n = new Node(x0,y0, nxt,s);
 
         //Add nod
         _nodes.add(n);
@@ -925,10 +1209,10 @@ class Snake extends Node{
         _posY = 2;
 
         //Add default body
-        AddNode(_posX,_posY);
-        AddNode(_posX,_posY);
-        AddNode(_posX,_posY);
-        AddNode(_posX,_posY);
+        AddNode(_posX,_posY,second);
+        AddNode(_posX,_posY,second);
+        AddNode(_posX,_posY,second);
+        AddNode(_posX,_posY,second);
     }
 
     ///////////////////////////////////////////////////////////////
@@ -961,10 +1245,24 @@ class Snake extends Node{
 
     //Detect Overlaps with the head node
     public boolean OverlapsSelf(){
+        boolean r = false;
+
         for(int i = 0; i < _nodes.size(); i++){
             Node n = _nodes.get(i);
             
             if(_posX == n._posX && _posY == n._posY)
+                r = true;
+        }
+
+        return r;
+    }
+
+    //Detect Overlaps with the head node
+    public boolean OverlapsPoint(int x0, int y0){
+        for(int i = 0; i < _nodes.size(); i++){
+            Node n = _nodes.get(i);
+            
+            if(x0 == n._posX && y0 == n._posY)
                 return true;
         }
 
@@ -978,10 +1276,8 @@ class Snake extends Node{
 
 
 class SoundController {
-    //Audio file listing
-    String[] Music;
-    String[] Sounds;
-    
+    HashMap <String,AudioPlayer> SongLibrary = new HashMap<String,AudioPlayer>();
+
     //Active Audio Players
     AudioPlayer _player;
     AudioInput _input;
@@ -1009,17 +1305,37 @@ class SoundController {
         //Load the current audio and play
         _player = minim.loadFile("test_song_1.mp3");
         _player.setGain(-80);
-        _player.play();
+        _player.loop();
     }
 
     //Future Audio Managment
     public void LoadSounds(){}
-    public void LoadMusic(){}
+    
+    public void LoadMusic(){
+        for(int i = 0; i < manager.Levels.size(); i++){
+            //Load song into memory
+            Level l = manager.Levels.get(i);
+            AudioPlayer player = minim.loadFile(l._song);
 
+            //Add Song to library
+            SongLibrary.put(l._song,player);
+        }
+    }
+
+    public void PlayLevelSong(Level l){
+        //Pause current song
+        _player.pause();
+
+        //Select levels song from library
+        _player = SongLibrary.get(l._song);
+
+        //Play song
+        _player.loop();
+    }
 
     public void Update(){
-        boolean checkBeat = onBeat();              //Check if frame is on beat
-        if(checkBeat) onBeatEvent();               //Change background to beat
+        boolean checkBeat = onBeat();               //Check if frame is on beat
+        if(checkBeat) onBeatEvent();                //Change background to beat
     }
 
 
@@ -1041,13 +1357,6 @@ class SoundController {
         return PApplet.parseInt(millis);
     }
 
-    //TODO: Detect audio desync
-    public void Calibrate(){
-        if(detectRythm() && !onBeat()) {            //Detect Audio Desync
-            _beat.Reset();                          //Reset the Audio
-        }
-    }
-
     ///////////////////////////////////////////////////////////////
     /////////////////////////Beat Detection////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -1057,7 +1366,7 @@ class SoundController {
         int time = _player.position();              //Time since audio started
         int offset = time % beatTiming;             //Time till the next beat
         
-        return (offset <= 250);
+        return (offset <= 300);
     }
 
     ///////////////////////////Depricated///////////////////////////
@@ -1070,6 +1379,13 @@ class SoundController {
         }
 
         return _beat.Triggered();                   //Check the audio timer
+    }
+
+    //TODO: Detect audio desync
+    public void Calibrate(){
+        if(detectRythm() && !onBeat()) {            //Detect Audio Desync
+            _beat.Reset();                          //Reset the Audio
+        }
     }
 
     public boolean detectRythm(){
@@ -1102,6 +1418,10 @@ class Timer {
 
         //Return nothing
         return false;
+    }
+
+    public int getTime(){
+        return (int)((millis() - _previousTick)/1000);
     }
 
     public void setLatency(float val){
