@@ -82,6 +82,7 @@ void Render(){
 
         textSize(30);
 
+        popMatrix();
         return;
     }
 
@@ -96,6 +97,7 @@ void Render(){
 
         textSize(30);
 
+        popMatrix();
         return;
     }
 
@@ -109,7 +111,8 @@ void Render(){
         text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
 
         textSize(30);
-
+    
+        popMatrix();
         return;
     }
 

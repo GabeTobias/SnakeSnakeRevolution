@@ -200,7 +200,7 @@ void DrawCursor(){
 
 int GetColor(int x0, int y0){
     //Read tile value
-    int tile = Data[x0][y0];
+    int tile = tile = Data[x0][y0];
     
     //Determine color for each type
     switch (tile) {
@@ -246,18 +246,20 @@ void LoadFile(String name){
     JSONObject file = loadJSONObject(name);
 
     //Load file Dimensions
-    int _width = file.getInt("width");
-    int _height = file.getInt("height");
+    _width = file.getInt("width");
+    _height = file.getInt("height");
 
-    //cp5.get(Textfield.class,"BPM").setText(file.getString("BPM"));
     cp5.get(Textfield.class,"Song").setText(file.getString("Song"));
+
+    cp5.get(Textfield.class,"Width").setText(str(file.getInt("width")));
+    cp5.get(Textfield.class,"Height").setText(str(file.getInt("height")));
 
     //Reset Data 
     Data = new int[_width][_height];
 
     //Loop through all spaces in level
-    for (int x0 = 0; x0 < _width; ++x0) {
-        for (int y0 = 0; y0 < _height; ++y0) {
+    for (int x0 = 0; x0 < _width; x0++) {
+        for (int y0 = 0; y0 < _height; y0++) {
             //Create name for data
             String id = str(x0) + "," + str(y0);
 
@@ -265,6 +267,8 @@ void LoadFile(String name){
             Data[x0][y0] = file.getInt(id);
         }
     }
+
+    println(Data[0].length);
 }
 
 void SaveFile(String name){

@@ -308,6 +308,7 @@ public void Render(){
 
         textSize(30);
 
+        popMatrix();
         return;
     }
 
@@ -322,6 +323,7 @@ public void Render(){
 
         textSize(30);
 
+        popMatrix();
         return;
     }
 
@@ -335,7 +337,8 @@ public void Render(){
         text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
 
         textSize(30);
-
+    
+        popMatrix();
         return;
     }
 
@@ -381,7 +384,7 @@ public void onBeatEvent(){
         if(secondPlayer) snek2.Move();
     }
 
-    pulse = 1;
+    //pulse = 1;
 
     sound._lb = millis();
 }
@@ -581,7 +584,11 @@ class Level {
             }
         }
 
-        _tileSize = height / _height;
+        if(_height > _width){
+            _tileSize = height / _height;
+        } else {
+            _tileSize = width / _width;
+        }
 
         println(_tileSize);
     }
@@ -606,30 +613,6 @@ class Level {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void DrawBlockRounded(int x0, int y0){
-        boolean tl = false;
-        boolean tr = false;
-        boolean bl = false;
-        boolean br = false;
-
-        tl = Data[x0][y0+1] == 0 || Data[x0-1][y0] == 0;
-        tr = Data[x0][y0+1] == 0 || Data[x0+1][y0] == 0;
-        bl = Data[x0][y0-1] == 0 || Data[x0-1][y0] == 0;
-        br = Data[x0][y0-1] == 0 || Data[x0+1][y0] == 0;
-
-        //Draw the head position
-        rect(
-            (x0 * TILESIZE),                              //X position scaled by tilesize
-            (y0 * TILESIZE),                              //Y position scaled by tilesize
-            (TILESIZE),                                   //width
-            (TILESIZE)                                    //height
-            ,(tl) ? 0:10
-            ,(tr) ? 0:10
-            ,(br) ? 0:10
-            ,(bl) ? 0:10
-        );
-    }
 
     public void DrawBlock(int x0, int y0){
         //Draw the head position
@@ -1185,11 +1168,18 @@ class Snake extends Node{
         _pVelX = _velX;
         _pVelY = _velY;
 
+        //Screen Limits
+        PVector levelSize = manager.getLevelSize();
+        PVector levelLimit = new PVector(
+            (width-levelSize.x)/2,
+            (height-levelSize.y)/2
+        );
+
         //Loop head position
-        if(_posX*TILESIZE > width-1) _posX = 0;
-        if(_posY*TILESIZE > height-1) _posY = 0;
+        if(_posX*TILESIZE > levelSize.x-1) _posX = 0;
+        if(_posY*TILESIZE > levelSize.y-1) _posY = 0;
         if(_posX*TILESIZE < 0) _posX = width/TILESIZE;
-        if(_posY*TILESIZE < 0) _posY = height/TILESIZE;
+        if(_posY*TILESIZE < 0) _posY = (int)levelSize.y;
 
         //Death Checks
         if(OverlapsSelf()) {
