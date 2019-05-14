@@ -12,6 +12,10 @@ SoundController sound;
 Renderer renderer;
 LevelManager manager;
 
+//Global Controls
+float pulse;
+float jumpScale = 10;
+
 Minim minim;
 Level level;
 
@@ -38,7 +42,23 @@ void InitGame(){
 
 void Render(){
     //Clear the screen
-    background(bkg);
+    background(0);
+
+    pulse = lerp(pulse,0,0.1f);
+
+    //Get Current Level screen size
+    PVector s = manager.getLevelSize();
+
+    //Center Level on Screen
+    pushMatrix();
+    translate(
+        (width-s.x)/2,
+        (height-s.y)/2
+    );
+
+    //Draw The Background
+    fill(255);
+    rect(0,0,s.x,s.y);
 
     //Render level walls
     level.Show();
@@ -49,6 +69,7 @@ void Render(){
 
     goal.Show();                    //Render Goal Object
 
+    TILESIZE = level._tileSize;
 
     if(State == GameState.GameOver){
 
@@ -93,6 +114,8 @@ void Render(){
     }
 
     particles.Show();               //Render Scene Particles
+
+    popMatrix();
 }
 
 
@@ -131,6 +154,8 @@ void onBeatEvent(){
         snek.Move();
         if(secondPlayer) snek2.Move();
     }
+
+    //pulse = 1;
 
     sound._lb = millis();
 }

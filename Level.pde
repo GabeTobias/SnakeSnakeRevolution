@@ -5,6 +5,8 @@ class Level {
 
     int _width, _height;
     int _stroke = 12;
+    int _tileSize;
+
     String _file,_song;
 
     public Level(int w, int h){
@@ -49,6 +51,10 @@ class Level {
                 Data[x0][y0] = file.getInt(id);
             }
         }
+
+        _tileSize = height / _height;
+
+        println(_tileSize);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +106,7 @@ class Level {
         //Draw the head position
         rect(
             (x0 * TILESIZE),                              //X position scaled by tilesize
-            (y0 * TILESIZE),                              //Y position scaled by tilesize
+            (y0 * TILESIZE) + (pulse*jumpScale),                              //Y position scaled by tilesize
             (TILESIZE),                                   //width
             (TILESIZE)                                    //height
         );

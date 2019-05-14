@@ -23,7 +23,7 @@ public class SnakeSnakeRevolution extends PApplet {
 
 
 //CONSTANTS
-final int TILESIZE = 40;
+int TILESIZE = 40;
 
 //DEBUGGERY
 Object CONTEXT;
@@ -33,6 +33,8 @@ int GameMode = 0;
 
 public void setup(){
     //Basic Setup
+    //16X9
+    //size(1920,1080,P2D);
     
     noStroke();
     frameRate(120);
@@ -236,6 +238,10 @@ SoundController sound;
 Renderer renderer;
 LevelManager manager;
 
+//Global Controls
+float pulse;
+float jumpScale = 10;
+
 Minim minim;
 Level level;
 
@@ -262,7 +268,23 @@ public void InitGame(){
 
 public void Render(){
     //Clear the screen
-    background(bkg);
+    background(0);
+
+    pulse = lerp(pulse,0,0.1f);
+
+    //Get Current Level screen size
+    PVector s = manager.getLevelSize();
+
+    //Center Level on Screen
+    pushMatrix();
+    translate(
+        (width-s.x)/2,
+        (height-s.y)/2
+    );
+
+    //Draw The Background
+    fill(255);
+    rect(0,0,s.x,s.y);
 
     //Render level walls
     level.Show();
@@ -273,6 +295,7 @@ public void Render(){
 
     goal.Show();                    //Render Goal Object
 
+    TILESIZE = level._tileSize;
 
     if(State == GameState.GameOver){
 
@@ -317,6 +340,8 @@ public void Render(){
     }
 
     particles.Show();               //Render Scene Particles
+
+    popMatrix();
 }
 
 
@@ -355,6 +380,8 @@ public void onBeatEvent(){
         snek.Move();
         if(secondPlayer) snek2.Move();
     }
+
+    pulse = 1;
 
     sound._lb = millis();
 }
@@ -507,6 +534,8 @@ class Level {
 
     int _width, _height;
     int _stroke = 12;
+    int _tileSize;
+
     String _file,_song;
 
     public Level(int w, int h){
@@ -551,6 +580,10 @@ class Level {
                 Data[x0][y0] = file.getInt(id);
             }
         }
+
+        _tileSize = height / _height;
+
+        println(_tileSize);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -602,7 +635,7 @@ class Level {
         //Draw the head position
         rect(
             (x0 * TILESIZE),                              //X position scaled by tilesize
-            (y0 * TILESIZE),                              //Y position scaled by tilesize
+            (y0 * TILESIZE) + (pulse*jumpScale),                              //Y position scaled by tilesize
             (TILESIZE),                                   //width
             (TILESIZE)                                    //height
         );
@@ -628,7 +661,7 @@ class LevelManager {
     }
 
     public String[] SelectLevels(){
-        String[] returns = {"Levels/Level_1.JSON","Levels/Level_0.JSON","Levels/Level_2.JSON"};
+        String[] returns = {"Levels/Level_3.JSON","Levels/Level_0.JSON","Levels/Level_2.JSON"};
         return returns;
     }
 
@@ -659,6 +692,13 @@ class LevelManager {
 
     public Level getLevel(){
         return Levels.get(currentLevel);
+    }
+
+    public PVector getLevelSize(){
+        return new PVector(
+            level._width * level._tileSize,
+            level._height * level._tileSize
+        );
     }
 }
 
@@ -1436,7 +1476,7 @@ class Timer {
         _interval = inter;
     }
 }
-  public void settings() {  size(800,800, P2D); }
+  public void settings() {  fullScreen(P2D); }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "SnakeSnakeRevolution" };
     if (passedArgs != null) {

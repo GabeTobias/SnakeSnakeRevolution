@@ -12,7 +12,7 @@ class LevelManager {
     }
 
     String[] SelectLevels(){
-        String[] returns = {"Levels/Level_1.JSON","Levels/Level_0.JSON","Levels/Level_2.JSON"};
+        String[] returns = {"Levels/Level_3.JSON","Levels/Level_0.JSON","Levels/Level_2.JSON"};
         return returns;
     }
 
@@ -43,6 +43,13 @@ class LevelManager {
 
     Level getLevel(){
         return Levels.get(currentLevel);
+    }
+
+    PVector getLevelSize(){
+        return new PVector(
+            level._width * level._tileSize,
+            level._height * level._tileSize
+        );
     }
 }
 

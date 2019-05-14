@@ -3,7 +3,7 @@ import ddf.minim.analysis.*;
 import java.util.Map;
 
 //CONSTANTS
-final int TILESIZE = 40;
+int TILESIZE = 40;
 
 //DEBUGGERY
 Object CONTEXT;
@@ -13,7 +13,9 @@ int GameMode = 0;
 
 void setup(){
     //Basic Setup
-    size(800,800, P2D);
+    //16X9
+    //size(1920,1080,P2D);
+    fullScreen(P2D);
     noStroke();
     frameRate(120);
 
