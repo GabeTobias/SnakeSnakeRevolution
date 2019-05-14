@@ -12,7 +12,7 @@ class LevelManager {
     }
 
     String[] SelectLevels(){
-        String[] returns = {"Levels/Level_3.JSON","Levels/Level_0.JSON","Levels/Level_2.JSON"};
+        String[] returns = {"Levels/Easy_3.JSON","Levels/Easy_0.JSON","Levels/Easy_2.JSON"};
         return returns;
     }
 
