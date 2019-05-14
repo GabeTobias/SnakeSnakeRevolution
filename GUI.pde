@@ -23,8 +23,12 @@ int countDown = -1;
 void StartMenu(){}
 
 void CharecterSelect() {
+    float offset = (width/320.0);
+
     pushMatrix();
-    translate(width/4.5, 0);
+    translate(width/offset, 0);
+
+    println("offset: "+offset);
 
     //Render Snakes
     fill(selectOptions[snake1]);
