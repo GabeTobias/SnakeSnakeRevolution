@@ -3,7 +3,7 @@ Snake snek = new Snake(5,5);
 Snake snek2 = new Snake(15,5,true);
 
 Food goal = new Food(15,15);
-Timer GameTime = new Timer(50);
+Timer GameTime = new Timer(100);
 GameState State = GameState.Playing;
 
 //GLOBALS INITS

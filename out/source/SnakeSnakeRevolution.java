@@ -150,7 +150,7 @@ public class Food {
 int[] selectOptions = {color(255,224,102),color(103,65,217),color(34,184,207),color(130,201,30),color(253,126,20),color(240,62,62)};
 
 //Snake position
-int sx1 = 300,sx2 = 1000;
+int sx1 = 300,sx2 = 100000;
 int sy1 = 100,sy2 = 100;
 
 //Charecter Selections
@@ -171,6 +171,9 @@ int countDown = -1;
 public void StartMenu(){}
 
 public void CharecterSelect() {
+    pushMatrix();
+    translate(width/4.5f, 0);
+
     //Render Snakes
     fill(selectOptions[snake1]);
     rect(sx1,sy1, 200,200);                                                             //Player 1
@@ -180,7 +183,7 @@ public void CharecterSelect() {
     fill(selectOptions[snake2]);
     rect(sx2,sy2, 200,200);                                                             //Player 2
 
-    rect((snake2*100)+125 + ((secondPlayer) ? 0:800),590,50,10, 30);                    //Cursor 2
+    rect((snake2*100)+125 + ((secondPlayer) ? 0:8000),590,50,10, 30);                    //Cursor 2
 
     snek.myColor = selectOptions[snake1];
     snek2.myColor = selectOptions[snake2];
@@ -209,6 +212,8 @@ public void CharecterSelect() {
     fill((ready2) ? 255:100);
     rect(sx2, 675, 200,50,20);
 
+    popMatrix();
+
     //Draw Countdown Timer
     if(countDown > -1 && countDown < 6){
         fill(255);
@@ -229,7 +234,7 @@ Snake snek = new Snake(5,5);
 Snake snek2 = new Snake(15,5,true);
 
 Food goal = new Food(15,15);
-Timer GameTime = new Timer(50);
+Timer GameTime = new Timer(100);
 GameState State = GameState.Playing;
 
 //GLOBALS INITS
