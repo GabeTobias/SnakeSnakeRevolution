@@ -23,7 +23,32 @@ void GameplayRelease(){
 }
 
 void GameplayInput(){
-    if(State == GameState.GameOver) return;
+    if(State == GameState.GameOver) {
+        if(key == 'w' && !W){
+            manager.Restart();
+
+            W = true;
+        }
+        return;
+    }
+
+    if(State == GameState.Win) {
+        if(key == 'w' && !W){
+            GameMode = 0;
+            
+            manager.Restart();
+
+            ready1 = false;
+            ready2 = false;
+            
+            secondPlayer = false;
+
+            countDown = -1;
+
+            W = true;
+        }
+        return;
+    }
     
     if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
 
@@ -106,19 +131,19 @@ void MenuInput(){
         //Player Select
         case 1:
             //Player 2 controls
-            if(key == 'i') { 
+            if(key == 'i'  && !ready2) { 
                 if(!secondPlayer) secondPlayer = true;
                 else ready2 = true;
                 
                 rTimer.Reset();
             }
-            if(key == 'j') snake2--;
-            if(key == 'l') snake2++;
+            if(key == 'j' && !ready2) snake2--;
+            if(key == 'l' && !ready2) snake2++;
 
             //Player 1 controls
-            if(key == 'a') snake1--;
-            if(key == 'd') snake1++;
-            if(key == 'w'){
+            if(key == 'a' && !ready1) snake1--;
+            if(key == 'd' && !ready1) snake1++;
+            if(key == 'w'  && !ready1){
                 ready1 = true;
                 rTimer.Reset();
             }

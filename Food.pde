@@ -5,12 +5,11 @@ public class Food {
     Material _material;
 
     public Food (int x0, int y0) {
-        _posX = x0;
-        _posY = y0;    
+        //Give a random position
+        ChangePosition();
 
         //Initialize Render Object
         _material = new Material();
-        
         _material._color = new PVector(1,0.5f,0.5f);
     }
 
@@ -33,13 +32,21 @@ public class Food {
     }
 
     void ChangePosition(){
-        _posX = (int)random(width/TILESIZE);
-        _posY = (int)random(height/TILESIZE);    
+        _posX = (int)random(level._width);
+        _posY = (int)random(level._height);    
 
-        while(level.GetBlock(_posX,_posY) != 0){
-            _posX = (int)random(width/TILESIZE);
-            _posY = (int)random(height/TILESIZE);   
+        while(level.GetBlock(_posX,_posY) != 0 || OverlapsSnake(_posX,_posY)){
+            _posX = (int)random(level._width);
+            _posY = (int)random(level._height);    
         }
+    }
+
+    boolean OverlapsSnake(int xx, int yy){
+        if(snek.OverlapsPoint(xx,yy)) return true;
+        
+        if(secondPlayer && snek2.OverlapsPoint(xx,yy)) return true;
+
+        return false;
     }
 
     void Eat(boolean second){

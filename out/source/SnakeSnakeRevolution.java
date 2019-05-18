@@ -103,12 +103,11 @@ public class Food {
     Material _material;
 
     public Food (int x0, int y0) {
-        _posX = x0;
-        _posY = y0;    
+        //Give a random position
+        ChangePosition();
 
         //Initialize Render Object
         _material = new Material();
-        
         _material._color = new PVector(1,0.5f,0.5f);
     }
 
@@ -131,13 +130,21 @@ public class Food {
     }
 
     public void ChangePosition(){
-        _posX = (int)random(width/TILESIZE);
-        _posY = (int)random(height/TILESIZE);    
+        _posX = (int)random(level._width);
+        _posY = (int)random(level._height);    
 
-        while(level.GetBlock(_posX,_posY) != 0){
-            _posX = (int)random(width/TILESIZE);
-            _posY = (int)random(height/TILESIZE);   
+        while(level.GetBlock(_posX,_posY) != 0 || OverlapsSnake(_posX,_posY)){
+            _posX = (int)random(level._width);
+            _posY = (int)random(level._height);    
         }
+    }
+
+    public boolean OverlapsSnake(int xx, int yy){
+        if(snek.OverlapsPoint(xx,yy)) return true;
+        
+        if(secondPlayer && snek2.OverlapsPoint(xx,yy)) return true;
+
+        return false;
     }
 
     public void Eat(boolean second){
@@ -163,7 +170,7 @@ boolean secondPlayer;
 boolean ready1,ready2;
 
 //Ready Timer
-Timer rTimer = new Timer(8000);
+Timer rTimer = new Timer(5000);
 
 //Count Down Count
 int countDown = -1;
@@ -175,8 +182,6 @@ public void CharecterSelect() {
 
     pushMatrix();
     translate(width/offset, 0);
-
-    println("offset: "+offset);
 
     //Render Snakes
     fill(selectOptions[snake1]);
@@ -219,7 +224,7 @@ public void CharecterSelect() {
     popMatrix();
 
     //Draw Countdown Timer
-    if(countDown > -1 && countDown < 6){
+    if(countDown > -1){
         fill(255);
         textSize(100);
         text(countDown,(width/2)-(textWidth(str(countDown))/2),(height/2)-(textAscent()/2));
@@ -227,7 +232,7 @@ public void CharecterSelect() {
 
 
     if(ready1 && ready2 || ready1 && !secondPlayer){
-        countDown = 8 - rTimer.getTime();
+        countDown = 5 - rTimer.getTime();
         if(rTimer.Triggered()) GameMode++;
     }
 }
@@ -237,7 +242,7 @@ public void Instructions(){}
 Snake snek = new Snake(5,5);
 Snake snek2 = new Snake(15,5,true);
 
-Food goal = new Food(15,15);
+Food goal;
 Timer GameTime = new Timer(100);
 GameState State = GameState.Playing;
 
@@ -267,6 +272,8 @@ public void InitGame(){
 
     //get Current Level from Level Init
     level = manager.getLevel();
+
+    goal = new Food(15,15);
 
     println(level._file);
 
@@ -307,47 +314,47 @@ public void Render(){
     TILESIZE = level._tileSize;
 
     if(State == GameState.GameOver){
+        popMatrix();
 
         fill(25,170);
-        rect(0,0,800,800);
+        rect(0,0,width,height);
 
         fill(255);
         textSize(100);
-        text("Game Over", 400-(textWidth("Game Over")/2),400);
+        text("Game Over", (width/2)-(textWidth("Game Over")/2),(height/2));
 
         textSize(30);
 
-        popMatrix();
         return;
     }
 
     if(State == GameState.Loading){
+        popMatrix();
 
         fill(255,255);
-        rect(0,0,800,800);
+        rect(0,0,width,height);
 
         fill(25);
         textSize(100);
-        text("Loading", 400-(textWidth("Loading")/2),400);
+        text("Loading", (width/2)-(textWidth("Loading")/2),(height/2));
 
         textSize(30);
 
-        popMatrix();
         return;
     }
 
     if(State == GameState.Win){
+        popMatrix();
 
         fill(255,255);
-        rect(0,0,800,800);
+        rect(0,0,width,height);
 
         fill(25);
         textSize(80);
-        text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
+        text("Thanks for playing", (width/2)-(textWidth("Thanks for Playing")/2),(height/2));
 
         textSize(30);
-    
-        popMatrix();
+
         return;
     }
 
@@ -429,7 +436,32 @@ public void GameplayRelease(){
 }
 
 public void GameplayInput(){
-    if(State == GameState.GameOver) return;
+    if(State == GameState.GameOver) {
+        if(key == 'w' && !W){
+            manager.Restart();
+
+            W = true;
+        }
+        return;
+    }
+
+    if(State == GameState.Win) {
+        if(key == 'w' && !W){
+            GameMode = 0;
+            
+            manager.Restart();
+
+            ready1 = false;
+            ready2 = false;
+            
+            secondPlayer = false;
+
+            countDown = -1;
+
+            W = true;
+        }
+        return;
+    }
     
     if(!sound.onBeat()) particles.Emmit(50,200,"Wrong");
 
@@ -512,19 +544,19 @@ public void MenuInput(){
         //Player Select
         case 1:
             //Player 2 controls
-            if(key == 'i') { 
+            if(key == 'i'  && !ready2) { 
                 if(!secondPlayer) secondPlayer = true;
                 else ready2 = true;
                 
                 rTimer.Reset();
             }
-            if(key == 'j') snake2--;
-            if(key == 'l') snake2++;
+            if(key == 'j' && !ready2) snake2--;
+            if(key == 'l' && !ready2) snake2++;
 
             //Player 1 controls
-            if(key == 'a') snake1--;
-            if(key == 'd') snake1++;
-            if(key == 'w'){
+            if(key == 'a' && !ready1) snake1--;
+            if(key == 'd' && !ready1) snake1++;
+            if(key == 'w'  && !ready1){
                 ready1 = true;
                 rTimer.Reset();
             }
@@ -593,7 +625,7 @@ class Level {
             }
         }
 
-        if(_height > _width){
+        if(width > height){
             _tileSize = height / _height;
         } else {
             _tileSize = width / _width;
@@ -653,7 +685,7 @@ class LevelManager {
     }
 
     public String[] SelectLevels(){
-        String[] returns = {"Levels/Level_3.JSON","Levels/Level_0.JSON","Levels/Level_2.JSON"};
+        String[] returns = {"Levels/Level_0.JSON","Levels/Level_1.JSON","Levels/Level_2.JSON"};
         return returns;
     }
 
@@ -666,6 +698,8 @@ class LevelManager {
     }
 
     public void Update(){
+        if(State == GameState.Win) return;
+
         if(foodCountPlayer1 > 3 || foodCountPlayer2 > 3) ChangeLevel();
 
         if(State == GameState.Loading){
@@ -692,6 +726,10 @@ class LevelManager {
             level._height * level._tileSize
         );
     }
+
+    public void Restart(){
+        thread("ResetGame");
+    }
 }
 
 public void LoadLevelData(){
@@ -709,6 +747,20 @@ public void LoadLevelData(){
     goal.ChangePosition();
 
     sound.PlayLevelSong(level);
+}
+
+public void ResetGame(){
+    manager.currentLevel = 0;
+    level = manager.getLevel();
+    
+    manager.foodCountPlayer1 = 0;
+    manager.foodCountPlayer2 = 0;
+
+    snek.Reload();
+    goal.ChangePosition();
+
+    sound.PlayLevelSong(level);
+    State = GameState.Playing;
 }
 
 /*
@@ -1136,6 +1188,12 @@ class Snake extends Node{
         }
 
         noStroke();
+
+        textSize(20);
+        fill(0);
+
+        text(_posX, 410,20);
+        text(_posY, 450,20);
     }
 
     public void Move() {
@@ -1179,16 +1237,18 @@ class Snake extends Node{
 
         //Screen Limits
         PVector levelSize = manager.getLevelSize();
-        PVector levelLimit = new PVector(
+        PVector levelOffset = new PVector(
             (width-levelSize.x)/2,
             (height-levelSize.y)/2
         );
 
-        //Loop head position
+        //Loop head position Bottom and Right
         if(_posX*TILESIZE > levelSize.x-1) _posX = 0;
         if(_posY*TILESIZE > levelSize.y-1) _posY = 0;
-        if(_posX*TILESIZE < 0) _posX = width/TILESIZE;
-        if(_posY*TILESIZE < 0) _posY = (int)levelSize.y;
+
+        //Loop head position Top and Left
+        if(_posX < 0) _posX = (int)(levelSize.x / TILESIZE)-1;
+        if(_posY < 0) _posY = (int)(levelSize.y / TILESIZE)-1;
 
         //Death Checks
         if(OverlapsSelf()) {

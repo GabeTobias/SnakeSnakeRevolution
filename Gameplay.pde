@@ -2,7 +2,7 @@
 Snake snek = new Snake(5,5);
 Snake snek2 = new Snake(15,5,true);
 
-Food goal = new Food(15,15);
+Food goal;
 Timer GameTime = new Timer(100);
 GameState State = GameState.Playing;
 
@@ -32,6 +32,8 @@ void InitGame(){
 
     //get Current Level from Level Init
     level = manager.getLevel();
+
+    goal = new Food(15,15);
 
     println(level._file);
 
@@ -72,47 +74,47 @@ void Render(){
     TILESIZE = level._tileSize;
 
     if(State == GameState.GameOver){
+        popMatrix();
 
         fill(25,170);
-        rect(0,0,800,800);
+        rect(0,0,width,height);
 
         fill(255);
         textSize(100);
-        text("Game Over", 400-(textWidth("Game Over")/2),400);
+        text("Game Over", (width/2)-(textWidth("Game Over")/2),(height/2));
 
         textSize(30);
 
-        popMatrix();
         return;
     }
 
     if(State == GameState.Loading){
+        popMatrix();
 
         fill(255,255);
-        rect(0,0,800,800);
+        rect(0,0,width,height);
 
         fill(25);
         textSize(100);
-        text("Loading", 400-(textWidth("Loading")/2),400);
+        text("Loading", (width/2)-(textWidth("Loading")/2),(height/2));
 
         textSize(30);
 
-        popMatrix();
         return;
     }
 
     if(State == GameState.Win){
+        popMatrix();
 
         fill(255,255);
-        rect(0,0,800,800);
+        rect(0,0,width,height);
 
         fill(25);
         textSize(80);
-        text("Thanks for playing", 400-(textWidth("Thanks for Playing")/2),400);
+        text("Thanks for playing", (width/2)-(textWidth("Thanks for Playing")/2),(height/2));
 
         textSize(30);
-    
-        popMatrix();
+
         return;
     }
 

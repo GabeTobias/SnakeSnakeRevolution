@@ -52,7 +52,7 @@ class Level {
             }
         }
 
-        if(_height > _width){
+        if(width > height){
             _tileSize = height / _height;
         } else {
             _tileSize = width / _width;
