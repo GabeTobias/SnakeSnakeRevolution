@@ -15,7 +15,7 @@ boolean secondPlayer;
 boolean ready1,ready2;
 
 //Ready Timer
-Timer rTimer = new Timer(8000);
+Timer rTimer = new Timer(5000);
 
 //Count Down Count
 int countDown = -1;
@@ -27,8 +27,6 @@ void CharecterSelect() {
 
     pushMatrix();
     translate(width/offset, 0);
-
-    println("offset: "+offset);
 
     //Render Snakes
     fill(selectOptions[snake1]);
@@ -71,7 +69,7 @@ void CharecterSelect() {
     popMatrix();
 
     //Draw Countdown Timer
-    if(countDown > -1 && countDown < 6){
+    if(countDown > -1){
         fill(255);
         textSize(100);
         text(countDown,(width/2)-(textWidth(str(countDown))/2),(height/2)-(textAscent()/2));
@@ -79,7 +77,7 @@ void CharecterSelect() {
 
 
     if(ready1 && ready2 || ready1 && !secondPlayer){
-        countDown = 8 - rTimer.getTime();
+        countDown = 5 - rTimer.getTime();
         if(rTimer.Triggered()) GameMode++;
     }
 }

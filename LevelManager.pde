@@ -25,6 +25,8 @@ class LevelManager {
     }
 
     void Update(){
+        if(State == GameState.Win) return;
+
         if(foodCountPlayer1 > 3 || foodCountPlayer2 > 3) ChangeLevel();
 
         if(State == GameState.Loading){
@@ -51,6 +53,10 @@ class LevelManager {
             level._height * level._tileSize
         );
     }
+
+    void Restart(){
+        thread("ResetGame");
+    }
 }
 
 void LoadLevelData(){
@@ -68,6 +74,20 @@ void LoadLevelData(){
     goal.ChangePosition();
 
     sound.PlayLevelSong(level);
+}
+
+void ResetGame(){
+    manager.currentLevel = 0;
+    level = manager.getLevel();
+    
+    manager.foodCountPlayer1 = 0;
+    manager.foodCountPlayer2 = 0;
+
+    snek.Reload();
+    goal.ChangePosition();
+
+    sound.PlayLevelSong(level);
+    State = GameState.Playing;
 }
 
 /*

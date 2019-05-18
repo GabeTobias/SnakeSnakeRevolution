@@ -135,16 +135,18 @@ class Snake extends Node{
 
         //Screen Limits
         PVector levelSize = manager.getLevelSize();
-        PVector levelLimit = new PVector(
+        PVector levelOffset = new PVector(
             (width-levelSize.x)/2,
             (height-levelSize.y)/2
         );
 
-        //Loop head position
+        //Loop head position Bottom and Right
         if(_posX*TILESIZE > levelSize.x-1) _posX = 0;
         if(_posY*TILESIZE > levelSize.y-1) _posY = 0;
-        if(_posX*TILESIZE < 0) _posX = width/TILESIZE;
-        if(_posY*TILESIZE < 0) _posY = (int)levelSize.y;
+
+        //Loop head position Top and Left
+        if(_posX < 0) _posX = (int)(levelSize.x / TILESIZE)-1;
+        if(_posY < 0) _posY = (int)(levelSize.y / TILESIZE)-1;
 
         //Death Checks
         if(OverlapsSelf()) {
