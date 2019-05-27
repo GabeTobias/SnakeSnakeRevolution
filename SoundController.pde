@@ -7,6 +7,17 @@ class SoundController {
     AudioPlayer _player;
     AudioInput _input;
     
+    //Sound Effects
+    AudioPlayer _ASelect;
+    AudioPlayer _AGameOver;
+    AudioPlayer _AWin;
+    AudioPlayer _AWrong;
+    AudioPlayer _ALoading;
+    AudioPlayer _ASecond;
+    AudioPlayer _AFood;
+    AudioPlayer _ACrash;
+
+    
     //Alternate beat detection system
     BeatDetect detector;
 
@@ -14,10 +25,13 @@ class SoundController {
     Timer _beat = new Timer(fromBPM(45.75/2.0));
 
     //Music Timing Managment
-    float _bpm = 96.0;
+    float _bpm = 122.0/2;
     float _sub = 2.0;
     float _lb = 0;
-
+    
+    float LastFrame;
+    float DeltaTime;
+    
     boolean _MusicSynced;
 
     public SoundController(){
@@ -28,19 +42,21 @@ class SoundController {
         detector = new BeatDetect();
 
         //Load the current audio and play
-        _player = minim.loadFile("test_song_1.mp3");
-        _player.setGain(-80);
+        _player = minim.loadFile("The Synth Wars - Jack O'Reilly.mp3");
+        //_player.setGain(-80);
         _player.loop();
     }
 
     //Future Audio Managment
     public void LoadSounds(){}
     
-    public void LoadMusic(){
+    public void LoadMusic() throws Exception {
         for(int i = 0; i < manager.Levels.size(); i++){
             //Load song into memory
             Level l = manager.Levels.get(i);
             AudioPlayer player = minim.loadFile(l._song);
+
+            if(player == null) throw new Exception("Null Pointer");
 
             //Add Song to library
             SongLibrary.put(l._song,player);
@@ -61,6 +77,9 @@ class SoundController {
     public void Update(){
         boolean checkBeat = onBeat();               //Check if frame is on beat
         if(checkBeat) onBeatEvent();                //Change background to beat
+        
+        DeltaTime = millis()-LastFrame;
+        LastFrame = millis();
     }
 
 
@@ -92,6 +111,22 @@ class SoundController {
         int offset = time % beatTiming;             //Time till the next beat
         
         return (offset <= 300);
+    }
+    
+    public boolean onOffBeat(){
+        int beatTiming = fromBPM((_bpm/_sub)*2);        //Current time between beats
+        int time = _player.position();              //Time since audio started
+        int offset = time % beatTiming;             //Time till the next beat
+        
+        return (offset <= 300);
+    }
+    
+    public boolean ExactBeat(){
+      int beatTiming = fromBPM((_bpm/_sub)*2);        //Current time between beats
+      int time = _player.position();              //Time since audio started
+      int offset = time % beatTiming;             //Time till the next beat
+      
+      return offset <= DeltaTime;
     }
 
     ///////////////////////////Depricated///////////////////////////

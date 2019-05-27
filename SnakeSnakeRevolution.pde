@@ -12,25 +12,48 @@ int bkg = 255;
 int GameMode = 0;
 
 void setup(){
-    //Basic Setup
-    //16X9
-    //size(1920,1080,P2D);
-    fullScreen(P2D);
+    fullScreen(P3D,2);
     noStroke();
     frameRate(120);
 
-    //Load Font
-    PFont maven = createFont("Maven.ttf", 128);
-    textFont(maven);
+    LoadFonts();
+    LoadImages();
+    LoadShaders();
 
-    //Set File loading Context
-    CONTEXT = this;
-
-    //Initialize Gameplay variables
     InitGame();
+    
+    LoadAudio();
+    
+    setupBKG();
+}
 
-    //Load images
-    Blur = loadImage("Blurr.png");
+void LoadFonts(){
+    //Load Font
+    PFont maven = createFont("Road_Rage.otf", 128);
+    textFont(maven);
+}
+
+void LoadShaders(){
+    blur = loadShader("blur.frag");
+}
+
+void LoadAudio(){
+    sound._ASelect = minim.loadFile("Select.wav");;
+    sound._AWrong = minim.loadFile("OffBeat.wav");
+    sound._ALoading = minim.loadFile("Loading.wav");
+    sound._ASecond =  minim.loadFile("Player2.wav");
+    sound._AFood = minim.loadFile("food.wav");
+    sound._ACrash = minim.loadFile("collision.wav");
+    sound._AWin = minim.loadFile("win.wav");
+}
+
+void LoadImages(){
+    Title = loadImage("Title.png");
+    Arrow = loadImage("Arrow.png");
+    ArrowBad = loadImage("ArrowBad.png");
+    ArrowNeg = loadImage("ArrowOutline.png");
+    Background = loadImage("Background.png");
+    Instructions = loadImage("instructions.png");
 }
 
 void draw(){
@@ -43,7 +66,7 @@ void draw(){
 
         //Single Player Select
         case 1:
-            background(125);
+            background(0);
             CharecterSelect();
             break;
 
@@ -64,15 +87,3 @@ void RunGame(){
     Render();                   //Render scene object to screen              
     HandleGameplay();           //Update scene object
 }
-
-void RunGUI(){}
-
-
-/*
-
-Assets
-    Arrow Tile Sets
-    Misteps Box
-    Background 
-
-*/

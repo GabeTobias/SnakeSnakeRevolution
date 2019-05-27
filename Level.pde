@@ -7,6 +7,9 @@ class Level {
     int _stroke = 12;
     int _tileSize;
 
+    boolean onBeat;
+    boolean hasFlipped;
+
     String _file,_song;
 
     public Level(int w, int h){
@@ -64,8 +67,17 @@ class Level {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void Show(){
+        lights();
+      
+        if(sound.onBeat() && !hasFlipped){
+          onBeat = !onBeat;
+          hasFlipped = true;
+        }
+        
+        if(!sound.onBeat()) hasFlipped = false;
+      
         //Style Blocks
-        fill(200);
+        fill(onBeat ? color(67,18,75):color(37,1,45));
 
         //Loop through all spaces in level
         for (int x0 = 0; x0 < _width; ++x0) {
@@ -83,13 +95,24 @@ class Level {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void DrawBlock(int x0, int y0){
-        //Draw the head position
-        rect(
-            (x0 * TILESIZE),                              //X position scaled by tilesize
-            (y0 * TILESIZE) + (pulse*jumpScale),                              //Y position scaled by tilesize
-            (TILESIZE),                                   //width
-            (TILESIZE)                                    //height
+        noStroke();  
+      
+        pushMatrix();
+      
+        translate(            
+            (x0 * TILESIZE)+30,                              //X position scaled by tilesize
+            (y0 * TILESIZE)+30,                              //Y position scaled by tilesize
+            -(pulse*jumpScale)
         );
+      
+        //Draw the head position
+        box(
+            TILESIZE,                   //width
+            TILESIZE,                   //height
+            TILESIZE/3
+        );
+        
+        popMatrix();
     }
 
     public int GetBlock(int x0, int y0){

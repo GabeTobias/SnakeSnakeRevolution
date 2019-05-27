@@ -17,13 +17,21 @@ class Node {
     }
 
     void Show(){
-        //Draw the head position
-        rect(
-            _posX * TILESIZE,           //X position scaled by tilesize
-            _posY * TILESIZE,           //Y position scaled by tilesize
-            TILESIZE,                   //width
-            TILESIZE                    //height
+        pushMatrix();
+      
+        translate(            
+            _posX * TILESIZE,                               //X position scaled by tilesize
+            _posY * TILESIZE  - (pulse*jumpScale)           //Y position scaled by tilesize
         );
+      
+        //Draw the head position
+        box(
+            TILESIZE,                   //width
+            TILESIZE,                    //height
+            TILESIZE
+        );
+        
+        popMatrix();
     }
 
     void Move() {

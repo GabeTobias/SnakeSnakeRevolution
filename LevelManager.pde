@@ -27,7 +27,13 @@ class LevelManager {
     void Update(){
         if(State == GameState.Win) return;
 
-        if(foodCountPlayer1 > 3 || foodCountPlayer2 > 3) ChangeLevel();
+        if(foodCountPlayer1 > 3 || foodCountPlayer2 > 3) LevelComplete();
+
+        if(State == GameState.LevelComp) {
+          if(millis() - LoadStart > 1000){
+            ChangeLevel();
+          }
+        }
 
         if(State == GameState.Loading){
             if(millis() - LoadStart > 3000){
@@ -36,9 +42,20 @@ class LevelManager {
         }
     }
 
+    void LevelComplete(){
+      State = GameState.LevelComp;
+      LoadStart = millis();
+
+      manager.foodCountPlayer1 = 0;
+      manager.foodCountPlayer2 = 0;
+
+    }
+
     void ChangeLevel(){
         State = GameState.Loading;
         LoadStart = millis();
+        
+        sound._ALoading.play(0);
         
         thread("LoadLevelData");
     }
@@ -61,6 +78,7 @@ class LevelManager {
 
 void LoadLevelData(){
     if(manager.currentLevel >= 2){
+        sound._AWin.play(0);
         State = GameState.Win;
     }
 
@@ -71,6 +89,7 @@ void LoadLevelData(){
     manager.foodCountPlayer2 = 0;
 
     snek.Reload();
+    snek2.Reload();
     goal.ChangePosition();
 
     sound.PlayLevelSong(level);
@@ -82,11 +101,15 @@ void ResetGame(){
     
     manager.foodCountPlayer1 = 0;
     manager.foodCountPlayer2 = 0;
-
+    
     snek.Reload();
+    snek2.Reload();
     goal.ChangePosition();
 
     sound.PlayLevelSong(level);
+
+    //TODO: Change to play menu song
+    //sound.PlayLevelSong(level);
     State = GameState.Playing;
 }
 

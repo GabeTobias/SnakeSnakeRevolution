@@ -18,15 +18,23 @@ public class Food {
     }
 
     void Show(){
-        fill(255,100,100);
-
-        //Draw the head position
-        ellipse(
-            _posX * TILESIZE + (TILESIZE/2),           //X position scaled by tilesize
-            _posY * TILESIZE + (TILESIZE/2),           //Y position scaled by tilesize
-            TILESIZE,                   //width
-            TILESIZE                    //height
+        fill((sound.onBeat() ? color(255,100,100):color(100)));
+        noLights();
+        
+        pushMatrix();
+      
+        translate(            
+            _posX * TILESIZE + (TILESIZE/2),                               //X position scaled by tilesize
+            _posY * TILESIZE + (TILESIZE/2) - (pulse*jumpScale),           //Y position scaled by tilesize
+            -(pulse*jumpScale)
         );
+      
+        //Draw the head position
+        sphere(
+            TILESIZE/4
+        );
+        
+        popMatrix();
         
         fill(255);
     }
@@ -50,8 +58,17 @@ public class Food {
     }
 
     void Eat(boolean second){
+        //Handle Visuals
+        FoodParticles();
         ChangePosition();
+        
+        //Increment Player Variable
         if(second)manager.foodCountPlayer2++;
-        else manager.foodCountPlayer2++;
+        else manager.foodCountPlayer1++;
+    }
+    
+    void FoodParticles() {
+      //Emit 20 Food Particles
+      for(int i = 0; i < 20; i++) Chomp.Emit(_posX*TILESIZE,_posY*TILESIZE,0);
     }
 }

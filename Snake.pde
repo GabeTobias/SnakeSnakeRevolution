@@ -1,6 +1,4 @@
 
-PImage Blur;
-
 class Snake extends Node{
     int _posX, _posY;
     int _velX = 1, _velY;
@@ -47,17 +45,25 @@ class Snake extends Node{
     }
 
     void Show(){
-        fill((sound.onBeat() ? myColor:color(100)));
-
-        //Draw the head position
-        ellipse(
+        fill(myColor);
+        
+        noLights();
+        
+        pushMatrix();
+      
+        translate(            
             _posX * TILESIZE + (TILESIZE/2),           //X position scaled by tilesize
-            _posY * TILESIZE + (TILESIZE/2),           //Y position scaled by tilesize
-            TILESIZE,                   //width
-            TILESIZE                    //height
+            _posY * TILESIZE + (TILESIZE/2)           //Y position scaled by tilesize
         );
+      
+        //Draw the head position
+        sphere(
+            TILESIZE/2                   //width
+        );
+        
+        popMatrix();
 
-        stroke((sound.onBeat() ? myColor:color(100)));
+        stroke(myColor);
         strokeWeight(TILESIZE/2);
 
         boolean b = (abs(_posX - _nodes.get(0)._posX) > 3);
@@ -72,6 +78,27 @@ class Snake extends Node{
                 _nodes.get(0)._posY*TILESIZE + (TILESIZE/2)
             );
             
+            int x0 = _posX*TILESIZE + (TILESIZE/2);
+            int y0 = _posY*TILESIZE + (TILESIZE/2);
+                   
+            int x1 = _nodes.get(0)._posX*TILESIZE + (TILESIZE/2);
+            int y1 = _nodes.get(0)._posY*TILESIZE + (TILESIZE/2);
+            
+            int sx = (x0 > x1) ? x0-x1 : x1-x0;
+            int sy = (y0 > y1) ? y0-y1 : y1-y0;
+            
+            int xx = (x0 > x1) ? x1 + ((x0-x1)/2) : x0 + ((x1-x0)/2);
+            int yy = (y0 > y1) ? y1 + ((y0-y1)/2) : y0 + ((y1-y0)/2);
+            
+            pushMatrix();
+
+            translate(xx,yy);
+
+            if(sx == 0) box(TILESIZE/16,sy,TILESIZE/16);
+            else box(sx,TILESIZE/16,TILESIZE/16);
+            
+            popMatrix();
+
         }
 
         //Render Node Listing
@@ -82,15 +109,30 @@ class Snake extends Node{
 
             if(abs(n1._posX - n2._posX) > 3) continue;
             if(abs(n1._posY - n2._posY) > 3) continue;
+            
+            int x0 = n1._posX*TILESIZE + (TILESIZE/2);
+            int y0 = n1._posY*TILESIZE + (TILESIZE/2);
+                   
+            int x1 = n2._posX*TILESIZE + (TILESIZE/2);
+            int y1 = n2._posY*TILESIZE + (TILESIZE/2);
+            
+            int sx = (x0 > x1) ? x0-x1 : x1-x0;
+            int sy = (y0 > y1) ? y0-y1 : y1-y0;
+            
+            int xx = (x0 > x1) ? x1 + ((x0-x1)/2) : x0 + ((x1-x0)/2);
+            int yy = (y0 > y1) ? y1 + ((y0-y1)/2) : y0 + ((y1-y0)/2);
+            
+            pushMatrix();
 
-            line(
-                n1._posX*TILESIZE + (TILESIZE/2),
-                n1._posY*TILESIZE + (TILESIZE/2),
-                n2._posX*TILESIZE + (TILESIZE/2),
-                n2._posY*TILESIZE + (TILESIZE/2)
-            );
+            translate(xx,yy);
+
+            if(sx == 0) box(TILESIZE/16,sy,TILESIZE/16);
+            else box(sx,TILESIZE/16,TILESIZE/16);
+
+            popMatrix();
+
         }
-
+        
         noStroke();
     }
 
@@ -116,14 +158,34 @@ class Snake extends Node{
 
                 _velX = 0;
                 _velY = (up) ? -1 : 1;
+                
+                Crash._XMin = 0;
+                Crash._XMax = 0;
+                Crash._YMin = -10;
+                Crash._YMax =  10;
+                Crash._ZMin = -10;
+                Crash._ZMax =  10;
 
+                sound._ACrash.play(0);
             } else {
                 boolean right = level.GetBlock(_posX+1,_posY) != 0 && !OverlapsPoint(_posX-1,_posY);
                 boolean left = level.GetBlock(_posX-1,_posY) != 0 && !OverlapsPoint(_posX-1,_posY);
 
                 _velX = (right) ? -1 : 1;
                 _velY = 0;
+                
+                Crash._XMin = -10;
+                Crash._XMax =  10;
+                Crash._YMin = 0;
+                Crash._YMax = 0;
+                Crash._ZMin = -10;
+                Crash._ZMax =  10;
+                
+                sound._ACrash.play(0);
             } 
+            
+            if(sound.onBeat())
+              for(int i = 0; i < 50; i++) Crash.Emit(_posX*TILESIZE,_posY*TILESIZE,0);
         }
 
         //Move the snake head
@@ -135,10 +197,6 @@ class Snake extends Node{
 
         //Screen Limits
         PVector levelSize = manager.getLevelSize();
-        PVector levelOffset = new PVector(
-            (width-levelSize.x)/2,
-            (height-levelSize.y)/2
-        );
 
         //Loop head position Bottom and Right
         if(_posX*TILESIZE > levelSize.x-1) _posX = 0;
@@ -150,43 +208,15 @@ class Snake extends Node{
 
         //Death Checks
         if(OverlapsSelf()) {
-            if(!secondPlayer) State = GameState.GameOver;
-            else Reload();
+            if(!secondPlayer) {
+              //sound._AGameOver.play(0);
+              State = GameState.GameOver;
+            } else Reload();
             
             println("Overlap");
         }
     }
 
-    void DrawBlurr(int x0, int y0, int x1, int y1){
-        int x2 = x0 * TILESIZE;
-        int y2 = y0 * TILESIZE;
-
-        int x3 = x1 * TILESIZE;
-        int y3 = y1 * TILESIZE;
-
-        
-        boolean hor = x2 == x3;
-
-        
-        int w = abs(x2-x3) + ((hor) ? 0:16);
-        int h = abs(y2-y3) + ((hor) ? 16:0);
-
-        int xx = (x2 > x3) ? x3-4:x2-4;
-        int yy = (y2 > y3) ? y3-4:y2-4;
-
-        if(hor) xx -= 8;
-        else yy -=8;
-
-        tint(100,100,255,255);
-
-        image(
-            Blur,
-            (x2 > x3) ? x3-4:x2-4,
-            (y2 > y3) ? y3-4:y2-4,
-            w+48,h+48
-        );
-    }
-    
     void AddNode(int x0, int y0, boolean s) {
         //Find the last usable node
         int nxt = (_nodes.size() > 0) ? _nodes.size() : 0;
@@ -215,6 +245,16 @@ class Snake extends Node{
     ///////////////////////////////////////////////////////////////
     //////////////////////GETTERS & SETTERS////////////////////////
     ///////////////////////////////////////////////////////////////
+    
+    void ResetSnakeSize(){
+        _nodes.clear();
+      
+        //Add default body
+        AddNode(_posX,_posY,false);
+        AddNode(_posX,_posY,false);
+        AddNode(_posX,_posY,false);
+        AddNode(_posX,_posY,false);
+    }
 
     //Set the directio of the head node
     void SetVelocity(int x0, int y0){
